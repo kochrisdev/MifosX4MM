@@ -1,0 +1,22 @@
+{
+  "name": "@mifos-x/kyc",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@mifos-x/shared-types": "workspace:*",
+    "fastify": "^4.27.0",
+    "nanoid": "^5.0.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.0.0",
+    "typescript": "^5.4.0",
+    "@types/node": "^20.0.0",
+    "vitest": "^1.0.0"
+  }
+}

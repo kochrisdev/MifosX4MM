@@ -1,0 +1,146 @@
+# ─── Volumes ──────────────────────────────────────────────────────────────────
+volumes:
+  postgres_data:
+  keycloak_data:
+
+# ─── Networks ─────────────────────────────────────────────────────────────────
+networks:
+  mifos_net:
+    driver: bridge
+
+services:
+
+  # ── PostgreSQL ───────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: mifos
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: fineract_default
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # Creates the `keycloak` and `mifostenant_default` databases on first boot
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "5432:5432"
+    networks: [mifos_net]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mifos"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Apache Fineract ───────────────────────────────────────────────────────────
+  fineract:
+    image: apache/fineract:latest
+    environment:
+      FINERACT_DEFAULT_TENANTDB_HOST: postgres
+      FINERACT_DEFAULT_TENANTDB_PORT: 5432
+      FINERACT_DEFAULT_TENANTDB_UID: mifos
+      FINERACT_DEFAULT_TENANTDB_PWD: password
+      FINERACT_DEFAULT_TENANTDB_CONN_PARAMS: ""
+      FINERACT_HIKARI_DS_CLASS: org.postgresql.ds.PGSimpleDataSource
+      FINERACT_HIKARI_JDBC_URL: jdbc:postgresql://postgres:5432/fineract_default
+      FINERACT_HIKARI_USERNAME: mifos
+      FINERACT_HIKARI_PASSWORD: password
+      FINERACT_TENANTS_MASTER_JDBC_URL: jdbc:postgresql://postgres:5432/mifostenant_default
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [mifos_net]
+
+  # ── Keycloak ─────────────────────────────────────────────────────────────────
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0
+    # --import-realm auto-imports JSON files placed in /opt/keycloak/data/import/
+    command: start-dev --import-realm
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: mifos
+      KC_DB_PASSWORD: password
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    volumes:
+      - ./infra/keycloak/realm-mifos.json:/opt/keycloak/data/import/realm-mifos.json:ro
+    ports:
+      - "8180:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [mifos_net]
+
+  # ── API Gateway ───────────────────────────────────────────────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.node
+      args:
+        SERVICE_PATH: apps/api
+    env_file: .env
+    environment:
+      FINERACT_URL: http://fineract:8080/fineract-provider/api/v1
+      MOBILE_MONEY_SVC_URL: http://mobile-money:3003
+      KYC_SVC_URL: http://kyc:3004
+      REPORTING_SVC_URL: http://reporting:3005
+    ports:
+      - "3001:3001"
+    depends_on: [fineract, keycloak]
+    networks: [mifos_net]
+
+  # ── Web Frontend ──────────────────────────────────────────────────────────────
+  web:
+    build:
+      context: apps/web
+      dockerfile: ../../infra/docker/Dockerfile.node
+      args:
+        SERVICE_PATH: apps/web
+    env_file: .env
+    environment:
+      NEXT_PUBLIC_API_URL: http://api:3001
+    ports:
+      - "3000:3000"
+    depends_on: [api]
+    networks: [mifos_net]
+
+  # ── Mobile Money Service ──────────────────────────────────────────────────────
+  mobile-money:
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.node
+      args:
+        SERVICE_PATH: services/mobile-money
+    env_file: .env
+    ports:
+      - "3003:3003"
+    networks: [mifos_net]
+
+  # ── KYC Service ───────────────────────────────────────────────────────────────
+  kyc:
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.node
+      args:
+        SERVICE_PATH: services/kyc
+    env_file: .env
+    ports:
+      - "3004:3004"
+    networks: [mifos_net]
+
+  # ── Reporting Service ─────────────────────────────────────────────────────────
+  reporting:
+    build:
+      context: services/reporting
+      dockerfile: ../../infra/docker/Dockerfile.python
+    env_file: .env
+    environment:
+      REPORTING_DB_URL: postgresql://mifos:password@postgres:5432/fineract_default
+      KYC_SVC_URL: http://kyc:3004
+    ports:
+      - "3005:3005"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [mifos_net]

@@ -1,0 +1,106 @@
+{
+  "realm": "mifos",
+  "enabled": true,
+  "sslRequired": "external",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": false,
+  "bruteForceProtected": true,
+  "accessTokenLifespan": 900,
+  "ssoSessionMaxLifespan": 36000,
+
+  "clients": [
+    {
+      "clientId": "mifos-api",
+      "name": "Mifos API Gateway",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "changeme-api-secret",
+      "bearerOnly": false,
+      "publicClient": false,
+      "serviceAccountsEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "standardFlowEnabled": false,
+      "protocol": "openid-connect",
+      "defaultClientScopes": ["web-origins", "profile", "roles", "email"]
+    },
+    {
+      "clientId": "mifos-staff",
+      "name": "Mifos Staff Portal",
+      "enabled": true,
+      "publicClient": true,
+      "bearerOnly": false,
+      "directAccessGrantsEnabled": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "serviceAccountsEnabled": false,
+      "protocol": "openid-connect",
+      "redirectUris": ["http://localhost:3000/*", "https://*.oqtiva.ai/*"],
+      "webOrigins": ["http://localhost:3000", "https://*.oqtiva.ai"],
+      "defaultClientScopes": ["web-origins", "profile", "roles", "email"]
+    },
+    {
+      "clientId": "mifos-mobile",
+      "name": "Mifos Mobile Field App",
+      "enabled": true,
+      "publicClient": true,
+      "bearerOnly": false,
+      "directAccessGrantsEnabled": true,
+      "standardFlowEnabled": false,
+      "serviceAccountsEnabled": false,
+      "protocol": "openid-connect",
+      "redirectUris": ["mifosxmobile://*"],
+      "defaultClientScopes": ["web-origins", "profile", "roles", "email"]
+    }
+  ],
+
+  "roles": {
+    "realm": [
+      { "name": "super_admin",     "description": "Full system access" },
+      { "name": "branch_manager",  "description": "Branch-level management and approvals" },
+      { "name": "loan_officer",    "description": "Client management, loan origination" },
+      { "name": "teller",          "description": "Repayment collection and disbursement" },
+      { "name": "customer",        "description": "End customer — mobile app access only" }
+    ]
+  },
+
+  "users": [
+    {
+      "username": "admin",
+      "email": "admin@mifos.local",
+      "firstName": "System",
+      "lastName": "Admin",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Admin@1234",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["super_admin"]
+    },
+    {
+      "username": "loan.officer",
+      "email": "loan.officer@mifos.local",
+      "firstName": "Demo",
+      "lastName": "Officer",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Officer@1234",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["loan_officer"]
+    }
+  ],
+
+  "scopeMappings": [],
+  "clientScopeMappings": {}
+}

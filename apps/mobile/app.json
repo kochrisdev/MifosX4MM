@@ -1,0 +1,31 @@
+{
+  "expo": {
+    "name": "Mifos X Field",
+    "slug": "mifos-x-mobile",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "mifosxmobile",
+    "platforms": ["ios", "android"],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "ai.oqtiva.mifosxmobile"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0ea5e9"
+      },
+      "package": "ai.oqtiva.mifosxmobile"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-build-properties",
+        {
+          "android": { "compileSdkVersion": 34, "targetSdkVersion": 34 },
+          "ios": { "deploymentTarget": "15.0" }
+        }
+      ]
+    ]
+  }
+}
