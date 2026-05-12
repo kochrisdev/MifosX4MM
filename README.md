@@ -1,4 +1,4 @@
-# Mifos X — Full-Stack Microfinance Platform
+# Mifos X for MM — Full-Stack Microfinance Platform
 
 A production-grade microfinance solution built for a mid-size Myanmar MFI on top of [Apache Fineract](https://fineract.apache.org/). The platform adds a modern frontend layer, KBZ Pay mobile money integration, a KYC abstraction service, and custom SQL-based reporting on top of Fineract's core banking engine.
 
