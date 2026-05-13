@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ── Node.js services (lint + typecheck) ───────────────────────────────────
+  node:
+    name: Node — Lint & Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build shared types
+        run: pnpm --filter @mifos-x/shared-types build
+
+      - name: Typecheck all packages
+        run: pnpm turbo typecheck --continue
+        continue-on-error: true  # remove once all tsconfigs have noEmit+tsc check
+
+      - name: Lint
+        run: pnpm turbo lint --continue
+        continue-on-error: true  # remove once ESLint configs are added
+
+      - name: Build
+        run: pnpm turbo build --filter=!@mifos-x/mobile
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:3001
+          NEXT_PUBLIC_REPORTING_URL: http://localhost:3005
+
+  # ── Python reporting service ───────────────────────────────────────────────
+  python:
+    name: Python — Lint & Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          pip install -r services/reporting/requirements.txt
+          pip install ruff mypy
+
+      - name: Lint (ruff)
+        run: ruff check services/reporting/
+        continue-on-error: true
+
+      - name: Import check
+        run: |
+          cd services/reporting
+          python -c "import main; import db; import routers.portfolio; import routers.collections; import routers.kyc_summary"
+        env:
+          REPORTING_DB_URL: postgresql://mifos:password@localhost:5432/fineract_default
+          KYC_SVC_URL: http://localhost:3004

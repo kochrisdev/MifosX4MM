@@ -9,7 +9,8 @@
     "lint": "turbo run lint",
     "test": "turbo run test",
     "docker:up": "docker compose up -d",
-    "docker:down": "docker compose down"
+    "docker:down": "docker compose down",
+    "seed": "tsx scripts/seed-fineract.ts"
   },
   "devDependencies": {
     "turbo": "^2.0.0",
