@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 
 export interface LoanRepaymentSchedule {
@@ -57,6 +57,41 @@ export interface LoanTransaction {
   principalPortion: number;
   interestPortion: number;
   reversed: boolean;
+}
+
+export interface LoanListItem {
+  id: number;
+  accountNo: string;
+  clientId: number;
+  clientName: string;
+  productName: string;
+  status: { id: number; value: string };
+  principal: number;
+  totalOutstanding: number;
+  currency: { displaySymbol: string };
+  inArrears: boolean;
+}
+
+interface LoansPage {
+  totalFilteredRecords: number;
+  pageItems: LoanListItem[];
+}
+
+export function useLoans(search = '') {
+  return useInfiniteQuery<LoansPage>({
+    queryKey: ['loans', search],
+    queryFn: async ({ pageParam = 0 }) => {
+      const params: Record<string, unknown> = { offset: pageParam, limit: 25 };
+      if (search) params.search = search;
+      const { data } = await api.get<{ success: boolean; data: LoansPage }>('/loans', { params });
+      return data.data;
+    },
+    getNextPageParam: (last, allPages) => {
+      const loaded = allPages.reduce((sum, p) => sum + p.pageItems.length, 0);
+      return loaded < last.totalFilteredRecords ? loaded : undefined;
+    },
+    initialPageParam: 0,
+  });
 }
 
 export function useLoan(loanId: number | string) {

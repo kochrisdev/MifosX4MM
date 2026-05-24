@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { useDashboardStats } from '@/hooks/useDashboardStats';
 import { formatMMK, formatNumber, formatPercent } from '@/lib/format';
 import { Users, Landmark, AlertTriangle, Banknote, RefreshCw, TrendingUp } from 'lucide-react';
@@ -8,16 +9,18 @@ import Link from 'next/link';
 
 export default function DashboardPage() {
   const { data, isLoading, isError, error, refetch, isFetching } = useDashboardStats();
+  const [today, setToday] = useState('');
+  useEffect(() => {
+    setToday(new Date().toLocaleDateString('en-GB', {
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+    }));
+  }, []);
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <p className="text-sm text-gray-500">
-          {new Date().toLocaleDateString('en-GB', {
-            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
-          })}
-        </p>
+        <p className="text-sm text-gray-500">{today}</p>
         <button
           onClick={() => refetch()}
           disabled={isFetching}

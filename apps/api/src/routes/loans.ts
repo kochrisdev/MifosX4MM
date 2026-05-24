@@ -3,6 +3,27 @@ import type { AxiosInstance } from 'axios';
 import type { FineractLoanAccount, FineractLoanRepayment } from '@mifos-x/shared-types';
 
 export async function loanRoutes(app: FastifyInstance, fineract: AxiosInstance) {
+  app.get<{ Querystring: { page?: number; pageSize?: number; search?: string } }>(
+    '/loans',
+    async (req, reply) => {
+      const { page = 0, pageSize = 20, search } = req.query;
+      const params: Record<string, unknown> = {
+        paged: true,
+        offset: page * pageSize,
+        limit: pageSize,
+      };
+      if (search) params['sqlSearch'] = `l.account_no like '%${search}%'`;
+      const { data } = await fineract.get('/loans', { params });
+      return reply.send({
+        success: true,
+        data: {
+          pageItems: data.pageItems ?? [],
+          totalFilteredRecords: data.totalFilteredRecords ?? 0,
+        },
+      });
+    }
+  );
+
   app.get<{ Params: { clientId: string } }>(
     '/clients/:clientId/loans',
     async (req, reply) => {
