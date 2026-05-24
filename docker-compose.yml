@@ -54,7 +54,7 @@ services:
   fineract:
     image: apache/fineract:latest
     environment:
-      FINERACT_DEFAULT_TENANTDB_HOST: mysql
+      FINERACT_DEFAULT_TENANTDB_HOSTNAME: mysql
       FINERACT_DEFAULT_TENANTDB_PORT: 3306
       FINERACT_DEFAULT_TENANTDB_UID: root
       FINERACT_DEFAULT_TENANTDB_PWD: password
