@@ -3,7 +3,7 @@
 ## Design Principles
 
 1. **Fineract as engine, not framework** — Apache Fineract is accessed only through its REST API. It is never forked or modified. All custom business logic lives in the gateway and services layer.
-2. **Single source of truth for financial data** — PostgreSQL (Fineract's database) is authoritative. The reporting service queries it directly for accuracy; it does not re-derive figures from the REST API.
+2. **Single source of truth for financial data** — Fineract stores all loan and client data in MySQL (`fineract_tenants`). The reporting service queries PostgreSQL (`fineract_default`) directly for accuracy rather than re-deriving figures from the REST API. Keycloak also uses PostgreSQL for its own schema.
 3. **Pluggable third-party integrations** — KYC providers and payment methods implement typed interfaces. Swapping vendors requires adding one file, not refactoring call sites.
 4. **JWT-first auth** — All protected routes verify RS256-signed JWTs against Keycloak's JWKS endpoint. No API keys are passed between services in the hot request path.
 
@@ -50,7 +50,7 @@ The single entry point for all clients (web, mobile). Responsibilities:
 
 ### `services/reporting` — Reporting API (Python FastAPI)
 
-- Connects directly to Fineract's PostgreSQL database via SQLAlchemy async + asyncpg
+- Connects directly to PostgreSQL (`fineract_default`) via SQLAlchemy async + asyncpg
 - **No Fineract REST calls** — all financial figures come from direct SQL for accuracy and performance
 - PAR calculations use a CTE on `m_loan_repayment_schedule` to find loans with unpaid past-due installments
 - KYC summary is fetched from the KYC service via httpx (that data lives in the KYC service, not Fineract's DB)
@@ -61,91 +61,103 @@ The single entry point for all clients (web, mobile). Responsibilities:
 
 ### 1. Staff Login
 
-```
-Web browser
-  → POST /api/v1/auth/login  {username, password}
-  → Fastify gateway
-  → POST keycloak:8180/realms/mifos/.../token  (grant_type=password)
-  ← access_token (RS256 JWT, 15 min TTL)  +  refresh_token
-  ← stores tokens in localStorage + accessToken cookie
-  → GET /api/v1/auth/me  (verifies JWT against JWKS)
-  ← AuthUser  {id, username, roles}
+```mermaid
+sequenceDiagram
+    participant B as Web Browser
+    participant GW as API Gateway
+    participant KC as Keycloak :8180
+
+    B->>GW: POST /api/v1/auth/login {username, password}
+    GW->>KC: POST /realms/mifos/protocol/openid-connect/token (grant_type=password)
+    KC-->>GW: access_token (RS256, 15 min TTL) + refresh_token
+    GW-->>B: tokens + set accessToken cookie
+    B->>GW: GET /api/v1/auth/me
+    GW->>GW: verify JWT against JWKS (jwks-rsa cache, 10 min TTL)
+    GW-->>B: AuthUser {id, username, roles}
 ```
 
 ### 2. Loan Repayment via KBZ Pay
 
-```
-Mobile app
-  → POST /api/v1/payments/initiate  {loanId, amount, customerName, customerPhone}
-  → API gateway
-  → POST mobile-money:3003/payments/kbzpay/initiate
-  → KBZ Pay /precreate  (signed with HMAC-SHA256)
-  ← prepayId + orderId
+```mermaid
+sequenceDiagram
+    participant App as Mobile App
+    participant GW as API Gateway
+    participant MM as Mobile Money :3003
+    participant KBZ as KBZ Pay
+    participant FIN as Fineract :8080
 
-  Mobile app opens  kbzpay://pay?prepay_id=<prepayId>
-  Customer pays in KBZ Pay app
-
-KBZ Pay server
-  → POST mobile-money:3003/webhooks/kbzpay  (signed callback)
-  → signature verified
-  → [event forwarded to API gateway — TODO: message bus]
-
-  Meanwhile, mobile app polls every 5 s:
-  → GET /api/v1/payments/status/<orderId>?loanId=<id>
-  → API gateway → mobile-money service → KBZ Pay /query
-  On success:
-  → POST fineract:8080/.../loans/<loanId>/transactions?command=repayment
-  ← Fineract transaction ID
-  ← mobile app shows success screen
+    App->>GW: POST /api/v1/payments/initiate {loanId, amount, customerName, customerPhone}
+    GW->>MM: POST /payments/kbzpay/initiate
+    MM->>KBZ: POST /precreate (HMAC-SHA256 signed)
+    KBZ-->>MM: prepayId + orderId
+    MM-->>GW: prepayId + orderId
+    GW-->>App: prepayId + orderId
+    App->>App: Linking.openURL("kbzpay://pay?prepay_id=...")
+    Note over App,KBZ: Customer completes payment in KBZ Pay app
+    KBZ->>MM: POST /webhooks/kbzpay (signed callback)
+    MM->>MM: verify HMAC-SHA256 signature
+    loop Poll every 5 s
+        App->>GW: GET /api/v1/payments/status/{orderId}
+        GW->>MM: query order
+        MM->>KBZ: GET /query
+        KBZ-->>MM: status
+        MM-->>GW: status
+        GW-->>App: status
+    end
+    GW->>FIN: POST .../loans/{loanId}/transactions?command=repayment
+    FIN-->>GW: transaction ID
+    GW-->>App: success
 ```
 
 ### 3. KYC Submission
 
-```
-Loan officer (mobile app)
-  → POST /api/v1/kyc/submit  {clientRef, documentType, images...}
-  → KYC service
-  → Provider.submit()  →  stub: auto-approves after 2 s
-                           real: Smile Identity / Onfido API call
-  ← submissionId + status: "processing"
+```mermaid
+sequenceDiagram
+    participant Off as Loan Officer (Mobile)
+    participant GW as API Gateway
+    participant KYC as KYC Service :3004
+    participant Prov as KYC Provider
+    participant RPT as Reporting Service
 
-Provider (async)
-  → POST kyc:3004/webhooks/kyc  {submissionId, status: "approved"}
-  → [future: update Fineract client document status]
-
-Reporting service
-  → GET kyc:3004/kyc/stats
-  ← {pending, processing, approved, rejected, manual_review, total}
+    Off->>GW: POST /api/v1/kyc/submit {clientRef, documentType, images}
+    GW->>KYC: Provider.submit()
+    Note over KYC,Prov: stub: auto-approves after 2 s / real: Smile Identity or Onfido API
+    KYC-->>GW: submissionId + status: "processing"
+    GW-->>Off: submissionId + status: "processing"
+    Prov-->>KYC: POST /webhooks/kyc {submissionId, status: "approved"} (async)
+    Note over KYC: future: update Fineract client document status
+    RPT->>KYC: GET /kyc/stats
+    KYC-->>RPT: {pending, processing, approved, rejected, manual_review, total}
 ```
 
 ### 4. Dashboard Stats Load
 
-```
-Browser → GET /api/v1/dashboard/stats
-  → API gateway
-  → Promise.allSettled([
-      GET reporting:3005/reports/portfolio/summary,
-      GET reporting:3005/reports/collections/today
-    ])
-  → reporting service queries PostgreSQL:
-      portfolio/summary:
-        WITH overdue_schedule AS (...)  -- CTE on m_loan_repayment_schedule
-        SELECT ... FROM m_loan LEFT JOIN overdue_schedule ...
-        WHERE loan_status_id = 300
-      collections/today:
-        SELECT SUM(amount) FROM m_loan_transaction
-        WHERE transaction_type_enum = 2
-          AND transaction_date = CURRENT_DATE
-          AND is_reversed = false
-  ← {activeClients, activeLoans, par0, par30, par90, totalOutstanding,
-     totalOverdue, collectionsToday, collectionRate}
+```mermaid
+sequenceDiagram
+    participant B as Browser
+    participant GW as API Gateway
+    participant RPT as Reporting :3005
+    participant PG as PostgreSQL
+
+    B->>GW: GET /api/v1/dashboard/stats
+    par portfolio summary
+        GW->>RPT: GET /reports/portfolio/summary
+        RPT->>PG: CTE on m_loan_repayment_schedule + m_loan WHERE loan_status_id=300
+        PG-->>RPT: portfolio data
+    and collections today
+        GW->>RPT: GET /reports/collections/today
+        RPT->>PG: SUM(amount) FROM m_loan_transaction WHERE transaction_date = CURRENT_DATE
+        PG-->>RPT: collections data
+    end
+    RPT-->>GW: portfolio + collections results
+    GW-->>B: {activeClients, activeLoans, par0, par30, par90, totalOutstanding, collectionsToday, ...}
 ```
 
 ---
 
 ## Database Schema (Key Tables)
 
-All tables are in the `fineract_default` PostgreSQL database (`public` schema).
+All tables are in Fineract's MySQL database (`fineract_default`, `public` schema). The reporting service queries these same table names via the PostgreSQL `fineract_default` database.
 
 ### `m_loan` — Loan accounts
 
@@ -226,17 +238,19 @@ This is more accurate than Fineract's REST-derived `inArrears` flag, which only 
 
 ## Auth Architecture
 
-```
-Keycloak realm: mifos
-  ├── Client: mifos-staff    (public, direct grant — web + mobile login)
-  └── Client: mifos-api      (confidential, service account — gateway-to-Keycloak)
+```mermaid
+flowchart TD
+    subgraph KC["Keycloak realm: mifos"]
+        S["mifos-staff\npublic · direct grant\nweb + mobile login"]
+        A["mifos-api\nconfidential · service account\ngateway ↔ Keycloak"]
+    end
 
-Verification flow:
-  Request  →  Fastify gateway
-  gateway  →  JWKS endpoint  (keycloak:8180/realms/mifos/.../certs)
-  jwks-rsa caches signing key (10 min TTL)
-  JWT verified: issuer + algorithm (RS256) + expiry
-  req.user populated: {id, username, email, roles}
+    REQ[Incoming Request] --> GW[Fastify Gateway]
+    GW -->|fetch signing key| JWKS["JWKS endpoint\nkeycloak:8180/realms/mifos/.../certs"]
+    JWKS --> CACHE["jwks-rsa cache\n10 min TTL · 5 entries max"]
+    CACHE --> GW
+    GW --> VERIFY["Verify JWT\nissuer · RS256 · expiry"]
+    VERIFY --> USER["req.user\n{id, username, email, roles}"]
 ```
 
 Token lifetimes (configurable in Keycloak):
@@ -248,17 +262,28 @@ Token lifetimes (configurable in Keycloak):
 
 ## Service Communication
 
-```
-Service         Calls                            Protocol
-───────────────────────────────────────────────────────────
-api             fineract                         HTTP (Basic auth)
-api             mobile-money                     HTTP (internal)
-api             reporting                        HTTP (internal)
-reporting       postgres (fineract_default)      asyncpg / TCP
-reporting       kyc                              HTTP (internal)
-kyc             [provider API]                   HTTPS
-mobile-money    KBZ Pay                          HTTPS
-keycloak        postgres (keycloak DB)           JDBC / TCP
+```mermaid
+graph LR
+    API["api :3001"]
+    FIN["fineract :8080"]
+    MM["mobile-money :3003"]
+    RPT["reporting :3005"]
+    KYC["kyc :3004"]
+    KC["keycloak :8180"]
+    KBZPAY(["KBZ Pay"])
+    PROV(["KYC Provider API"])
+    MYSQL[("MySQL :3306")]
+    PG[("PostgreSQL :5432")]
+
+    API -->|"HTTP Basic auth"| FIN
+    API -->|"HTTP internal"| MM
+    API -->|"HTTP internal"| RPT
+    FIN -->|"MariaDB JDBC"| MYSQL
+    RPT -->|"asyncpg TCP"| PG
+    RPT -->|"HTTP internal"| KYC
+    KYC -->|"HTTPS"| PROV
+    MM -->|"HTTPS"| KBZPAY
+    KC -->|"JDBC TCP"| PG
 ```
 
 All inter-service calls are on the `mifos_net` Docker bridge network in development. In production, replace with a service mesh or internal load balancer.

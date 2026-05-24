@@ -6,45 +6,27 @@ A production-grade microfinance solution built for a mid-size Myanmar MFI on top
 
 ## Architecture Overview
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│  Clients                                                        │
-│  ┌──────────────┐        ┌────────────────────────────────┐    │
-│  │  Next.js     │        │  React Native (Expo)           │    │
-│  │  Staff Portal│        │  Loan Officer Mobile App       │    │
-│  │  :3000       │        │  iOS / Android                 │    │
-│  └──────┬───────┘        └───────────────┬────────────────┘    │
-└─────────┼─────────────────────────────────┼────────────────────┘
-          │  JWT (Keycloak RS256)            │
-          ▼                                 ▼
-┌─────────────────────────────────────────────────────────────────┐
-│  API Gateway  (Fastify / TypeScript)  :3001                     │
-│  /api/v1/auth   /clients   /loans   /payments   /dashboard      │
-└────┬────────────────┬──────────────────┬──────────────────┬─────┘
-     │                │                  │                  │
-     ▼                ▼                  ▼                  ▼
-┌─────────┐   ┌──────────────┐  ┌──────────────┐  ┌─────────────┐
-│Keycloak │   │Apache        │  │Mobile Money  │  │Reporting    │
-│:8180    │   │Fineract      │  │Service       │  │Service      │
-│Auth/SSO │   │:8080         │  │:3003         │  │:3005        │
-└─────────┘   │Core Banking  │  │KBZ Pay       │  │FastAPI +    │
-              │REST API      │  │Integration   │  │Direct SQL   │
-              └──────┬───────┘  └──────────────┘  └──────┬──────┘
-                     │                                    │
-                     ▼                                    │
-              ┌─────────────────────────────────────────┐│
-              │  PostgreSQL  :5432                       ││
-              │  fineract_default  |  keycloak           ││
-              └─────────────────────────────────────────┘│
-                     ▲                                    │
-                     └────────────────────────────────────┘
-                       reporting service reads directly
+```mermaid
+graph TD
+    subgraph Clients
+        WEB["Next.js Staff Portal\n:3000"]
+        MOB["React Native Expo\niOS / Android"]
+    end
 
-              ┌──────────────┐
-              │  KYC Service │
-              │  :3004       │
-              │  Stub → Real │
-              └──────────────┘
+    WEB -->|JWT RS256| GW
+    MOB -->|JWT RS256| GW
+
+    GW["API Gateway · Fastify :3001\n/auth  /clients  /loans  /payments  /dashboard"]
+
+    GW --> KC["Keycloak :8180\nAuth / SSO"]
+    GW --> FIN["Apache Fineract :8080\nCore Banking REST API"]
+    GW --> MM["Mobile Money :3003\nKBZ Pay Integration"]
+    GW --> RPT["Reporting :3005\nFastAPI + Direct SQL"]
+    GW --> KYC["KYC Service :3004\nStub → Real"]
+
+    FIN -->|MariaDB JDBC| MYSQL[("MySQL :3306\nfineract_tenants")]
+    KC -->|JDBC| PG[("PostgreSQL :5432\nkeycloak · fineract_default")]
+    RPT -->|asyncpg direct| PG
 ```
 
 ---
@@ -61,7 +43,8 @@ A production-grade microfinance solution built for a mid-size Myanmar MFI on top
 | KYC | Pluggable provider interface (stub → Smile Identity / Onfido) |
 | Reporting | Python FastAPI + SQLAlchemy async + asyncpg |
 | Auth | Keycloak 24 (JWKS-backed JWT verification in the gateway) |
-| Database | PostgreSQL 15 |
+| Database (Fineract) | MySQL 8.0 — `fineract_tenants` + `fineract_default` |
+| Database (auth + reporting) | PostgreSQL 15 — `keycloak` + `fineract_default` |
 | Monorepo | Turborepo + pnpm workspaces |
 | Dev infra | Docker Compose |
 
@@ -84,7 +67,8 @@ mifos-x/
 ├── infra/
 │   ├── docker/           Shared Dockerfiles (Node, Python)
 │   ├── keycloak/         realm-mifos.json — auto-imported on first boot
-│   └── postgres/         init.sql — creates keycloak + mifostenant_default DBs
+│   ├── postgres/         init.sql — creates the keycloak database
+│   └── mysql/            init.sql — creates the fineract_default database
 ├── .env.example          All required environment variables
 └── docker-compose.yml    Full dev environment
 ```
@@ -117,8 +101,9 @@ cp .env.example .env
 
 ```bash
 pnpm docker:up
-# Starts: PostgreSQL, Fineract, Keycloak
+# Starts: PostgreSQL, MySQL, Fineract, Keycloak, and all app services
 # Keycloak auto-imports the mifos realm on first boot (~60 s)
+# Fineract runs its Liquibase migrations against MySQL (~2-3 min)
 ```
 
 ### 4 — Start all services in dev mode
@@ -140,6 +125,7 @@ pnpm dev
 | KYC service | http://localhost:3004 |
 | Reporting service | http://localhost:3005 |
 | PostgreSQL | localhost:5432 |
+| MySQL | localhost:3306 |
 
 ### Default login credentials
 
@@ -165,13 +151,23 @@ Set `KBZPAY_BASE_URL` to KBZ Pay's UAT endpoint during testing, then swap to pro
 
 ### Payment flow
 
-```
-1. API gateway  →  POST /payments/initiate
-2. mobile-money service  →  KBZ Pay /precreate  →  prepayId
-3. Mobile app opens  kbzpay://pay?prepay_id=...  (deep link)
-4. Customer completes payment in KBZ Pay app
-5. KBZ Pay POSTs callback to  POST /webhooks/kbzpay
-6. Signature verified (HMAC-SHA256)  →  repayment posted to Fineract
+```mermaid
+sequenceDiagram
+    participant App as Mobile App
+    participant GW as API Gateway
+    participant MM as Mobile Money :3003
+    participant KBZ as KBZ Pay
+
+    App->>GW: POST /payments/initiate
+    GW->>MM: POST /payments/kbzpay/initiate
+    MM->>KBZ: POST /precreate (HMAC-SHA256 signed)
+    KBZ-->>MM: prepayId
+    MM-->>App: prepayId
+    App->>App: open kbzpay://pay?prepay_id=...
+    Note over App,KBZ: Customer pays in KBZ Pay app
+    KBZ->>MM: POST /webhooks/kbzpay (signed callback)
+    MM->>MM: verify HMAC-SHA256 signature
+    Note over MM: repayment posted to Fineract
 ```
 
 See [`services/mobile-money/src/kbzpay/`](services/mobile-money/src/kbzpay/) for implementation.

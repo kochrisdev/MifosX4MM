@@ -4,7 +4,7 @@
 
 | Tool | Version | Purpose |
 |---|---|---|
-| Docker Desktop | 4.x+ | Run Fineract, PostgreSQL, Keycloak |
+| Docker Desktop | 4.x+ | Run Fineract, MySQL, PostgreSQL, Keycloak |
 | Node.js | 20+ | All TypeScript services |
 | pnpm | 9+ | Monorepo package manager |
 | Python | 3.12+ | Reporting service |
@@ -29,8 +29,9 @@ cp .env.example .env
 # 3. Start infrastructure containers
 pnpm docker:up
 # First boot takes ~2-3 minutes:
-#   - PostgreSQL creates fineract_default, keycloak, mifostenant_default databases
-#   - Fineract runs its Liquibase migrations
+#   - PostgreSQL creates: fineract_default (reporting), keycloak (auth)
+#   - MySQL creates: fineract_tenants + fineract_default (Fineract's core banking data)
+#   - Fineract runs its Liquibase migrations against MySQL
 #   - Keycloak imports the mifos realm and seed users
 
 # 4. Verify everything is up
@@ -182,8 +183,8 @@ docker compose down -v
 
 ### Reset Fineract + databases (keep code changes)
 ```bash
-docker compose down -v && docker compose up -d postgres
-# wait ~10 s for PostgreSQL to be healthy
+docker compose down -v && docker compose up -d postgres mysql
+# wait ~10 s for both databases to be healthy
 docker compose up -d fineract keycloak
 ```
 
@@ -197,6 +198,11 @@ docker compose logs -f keycloak
 ### Connect to PostgreSQL directly
 ```bash
 docker compose exec postgres psql -U mifos -d fineract_default
+```
+
+### Connect to MySQL directly
+```bash
+docker compose exec mysql mysql -u root -ppassword fineract_tenants
 ```
 
 ### Useful Fineract SQL queries
@@ -266,7 +272,8 @@ console.log(buildSignature(params, 'my-sign-key'));
 | 3003 | Mobile money service |
 | 3004 | KYC service |
 | 3005 | Reporting service (FastAPI) |
-| 5432 | PostgreSQL |
+| 3306 | MySQL (Fineract's database) |
+| 5432 | PostgreSQL (Keycloak + reporting) |
 | 8080 | Apache Fineract |
 | 8180 | Keycloak |
 
