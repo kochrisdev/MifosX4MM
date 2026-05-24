@@ -11,21 +11,22 @@
   },
   "dependencies": {
     "@mifos-x/shared-types": "workspace:*",
-    "expo": "~51.0.0",
-    "expo-router": "~3.5.0",
-    "expo-status-bar": "~1.12.0",
-    "expo-linking": "~6.3.0",
     "@react-native-async-storage/async-storage": "1.23.1",
-    "react": "18.2.0",
-    "react-native": "0.74.1",
     "@tanstack/react-query": "^5.0.0",
     "axios": "^1.7.0",
+    "expo": "~51.0.0",
+    "expo-build-properties": "^0.12.5",
+    "expo-linking": "~6.3.0",
+    "expo-router": "~3.5.0",
+    "expo-status-bar": "~1.12.0",
     "lucide-react-native": "^0.372.0",
+    "react": "18.2.0",
+    "react-native": "0.74.1",
     "react-native-svg": "15.2.0"
   },
   "devDependencies": {
-    "typescript": "^5.4.0",
+    "@babel/core": "^7.24.0",
     "@types/react": "~18.2.0",
-    "@babel/core": "^7.24.0"
+    "typescript": "^5.4.0"
   }
 }

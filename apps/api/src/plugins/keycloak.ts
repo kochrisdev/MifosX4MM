@@ -45,7 +45,7 @@ export default fp(async function keycloakPlugin(app: FastifyInstance) {
     // complete: true makes @fastify/jwt pass { header, payload, signature }
     // to the secret callback, giving us access to the kid header for JWKS lookup
     decode: { complete: true },
-    secret: async (_request, decodedToken: any) => {
+    secret: async (_request: any, decodedToken: any) => {
       const kid = decodedToken?.header?.kid;
       if (!kid) throw new Error('JWT missing kid header');
       const key = await jwksClient.getSigningKey(kid);
@@ -57,13 +57,13 @@ export default fp(async function keycloakPlugin(app: FastifyInstance) {
     },
     // Map raw Keycloak claims to our AuthUser shape
     decoratorName: 'user',
-    formatUser: (payload) => ({
+    formatUser: (payload: any) => ({
       id: payload.sub,
       username: payload.preferred_username,
       email: payload.email,
       roles: (payload.realm_access?.roles ?? []) as UserRole[],
     }),
-  });
+  } as any);
 
   app.decorate('authenticate', async (req: FastifyRequest, reply: FastifyReply) => {
     try {

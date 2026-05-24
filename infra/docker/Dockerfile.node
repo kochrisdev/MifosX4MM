@@ -11,16 +11,14 @@ RUN pnpm install --frozen-lockfile
 
 FROM base AS builder
 WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/packages ./packages
+COPY --from=deps /app ./
 COPY . .
 ARG SERVICE_PATH
-RUN pnpm --filter ${SERVICE_PATH} build
+RUN pnpm --filter @mifos-x/shared-types build
+RUN pnpm --filter "./${SERVICE_PATH}" build
+RUN pnpm deploy --filter "./${SERVICE_PATH}" --prod /deploy
 
 FROM base AS runner
 WORKDIR /app
-ARG SERVICE_PATH
-COPY --from=builder /app/${SERVICE_PATH}/dist ./dist
-COPY --from=builder /app/${SERVICE_PATH}/package.json ./
-COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /deploy ./
 CMD ["node", "dist/index.js"]
