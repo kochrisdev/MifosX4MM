@@ -103,6 +103,7 @@ services:
     env_file: .env
     environment:
       FINERACT_URL: http://fineract:8080/fineract-provider/api/v1
+      KEYCLOAK_URL: http://keycloak:8080
       MOBILE_MONEY_SVC_URL: http://mobile-money:3003
       KYC_SVC_URL: http://kyc:3004
       REPORTING_SVC_URL: http://reporting:3005
