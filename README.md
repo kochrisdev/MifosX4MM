@@ -210,3 +210,4 @@ To add a new provider: implement `KycProvider` in [`services/kyc/src/providers/`
 | [docs/API.md](docs/API.md) | Full API reference for all services |
 | [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) | Local setup, env vars, workflows, troubleshooting |
 | [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) | Feature development patterns, testing, known tech debt |
+| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | VPS deployment with Docker, Nginx, and TLS |
