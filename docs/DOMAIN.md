@@ -148,10 +148,38 @@ Reserved for future borrower self-service via the mobile app. Not implemented.
 ## Why these technology choices?
 
 ### Apache Fineract
-Battle-tested open-source core banking engine used by MFIs in 40+ countries. It handles the complex financial math: amortization schedule generation, interest accrual, GL accounting, multi-currency. We access it only through its REST API — never fork it — so we can upgrade the Docker image without touching our code.
+
+**What it is:** An open-source core banking system built by the Apache Software Foundation, used by microfinance institutions in 40+ countries.
+
+**Why not just use a regular database?** Banking has complicated rules that took years to get right: how do you calculate interest daily vs. monthly? What happens when a loan payment is late? How do you track a loan through its full lifecycle (pending → approved → active → closed)? How do you handle partial payments? Fineract already implements all of this correctly.
+
+**What it does in this project:** Stores all clients and loan accounts, generates repayment schedules on disbursement, processes repayments, calculates what is overdue, and exposes all of this via a REST API that our API Gateway calls.
+
+**The tradeoff:** Fineract is a Java/Spring Boot application that takes 2-3 minutes to boot and is treated as a black box — we call its REST API, we never touch its code or database schema directly. This means we can upgrade the Docker image without changing our code.
 
 ### Keycloak
-Standard enterprise OIDC provider. Staff login uses the **Resource Owner Password Credentials (ROPC)** flow: the user submits username/password directly to our gateway, which exchanges it with Keycloak for a JWT. This is appropriate for a closed staff portal (unlike OAuth Authorization Code flow, which is for public consumer apps with "Login with Google"). The RS256 JWT lets every service verify tokens independently against Keycloak's public JWKS endpoint — no database round-trip per request.
+
+**What it is:** An open-source identity and access management (IAM) system. Its job is handling authentication ("who are you?") and authorization ("what are you allowed to do?").
+
+**Why not build login ourselves?** Secure login is notoriously hard: safely storing passwords, preventing brute force attacks, issuing and verifying JWT tokens, managing user roles, handling token expiry and refresh. Keycloak handles all of this correctly and is audited by the security community.
+
+**What it does in this project:** Stores all staff user accounts (loan officers, branch managers, tellers), issues JWT tokens when someone logs in, and lets our API Gateway verify every request without hitting a database.
+
+**How login works in this project:**
+```
+User submits username + password to the web app
+        │
+        ▼
+API Gateway exchanges credentials with Keycloak → receives a JWT token
+        │
+        ▼
+JWT token is stored in the browser and sent with every subsequent API request
+        │
+        ▼
+API Gateway verifies the token using Keycloak's public key → allows or blocks the request
+```
+
+Staff login uses the **Resource Owner Password Credentials (ROPC)** flow — the user submits credentials directly to our gateway, which exchanges them with Keycloak. This is appropriate for a closed internal staff portal. The RS256 JWT lets every service verify tokens independently using Keycloak's public JWKS endpoint — no database round-trip per request.
 
 ### KBZ Pay (direct API, not aggregator)
 Myanmar's largest mobile wallet with deepest rural penetration. Using the direct merchant API rather than an aggregator (2C2P, Dinger) avoids aggregator fees and gives direct access to status webhooks and settlement reports. The trade-off is managing HMAC-SHA256 request signing directly (see `services/mobile-money/src/kbzpay/signature.ts`).
