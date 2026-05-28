@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useLoans } from '@/hooks/useLoans';
-import { Badge, loanStatusBadge } from '@/components/ui/Badge';
+import { loanStatusBadge } from '@/components/ui/Badge';
 import { formatMMK } from '@/lib/format';
 import { Search, ChevronRight, AlertCircle } from 'lucide-react';
 
@@ -24,82 +24,105 @@ export default function LoansPage() {
   const total  = data?.pages[0]?.totalFilteredRecords ?? 0;
 
   return (
-    <div className="max-w-6xl mx-auto space-y-5">
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1 max-w-sm">
-          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search by account number…"
-            value={search}
-            onChange={(e) => onSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
-          />
-        </div>
+    <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+      {/* Page header */}
+      <div style={{ marginBottom: 18 }}>
+        <p style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--ink-3)', marginBottom: 4 }}>Workspace / Loans</p>
+        <h1 style={{ fontSize: 24, fontWeight: 600, color: 'var(--ink)', letterSpacing: '-0.015em', lineHeight: 1.2, margin: 0 }}>Loans</h1>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="px-5 py-3 border-b border-gray-100">
-          <p className="text-sm text-gray-500">
+      {/* Card with search + table */}
+      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-card)', overflow: 'hidden' }}>
+        {/* Search bar */}
+        <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-2)', display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ position: 'relative', maxWidth: 320, flex: 1 }}>
+            <Search size={14} style={{ position: 'absolute', left: 9, top: '50%', transform: 'translateY(-50%)', color: 'var(--ink-3)' }} />
+            <input
+              type="text"
+              placeholder="Search by account number…"
+              value={search}
+              onChange={(e) => onSearch(e.target.value)}
+              style={{
+                width: '100%', padding: '6px 10px 6px 30px',
+                border: '1px solid var(--border)', borderRadius: 'var(--r-input)',
+                fontSize: 13, background: 'var(--surface-2)', color: 'var(--ink)',
+                outline: 'none', fontFamily: 'var(--sans)', boxSizing: 'border-box',
+              }}
+              onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--teal)'; e.currentTarget.style.background = 'var(--surface)'; }}
+              onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.background = 'var(--surface-2)'; }}
+            />
+          </div>
+          <p style={{ fontSize: 12.5, color: 'var(--ink-3)', whiteSpace: 'nowrap' }}>
             {isLoading ? 'Loading…' : `${total.toLocaleString()} loan${total !== 1 ? 's' : ''}`}
           </p>
         </div>
 
+        {/* Table header */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 130px 120px 100px 32px', padding: '8px 16px', background: 'var(--surface-2)', borderBottom: '1px solid var(--border-2)' }}>
+          {['Client / Account', 'Product', 'Outstanding', 'Status', ''].map((col, i) => (
+            <span key={col + i} style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--ink-3)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{col}</span>
+          ))}
+        </div>
+
+        {/* Rows */}
         {isLoading ? (
-          <div className="divide-y divide-gray-50">
+          <div>
             {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="flex items-center gap-4 px-5 py-4 animate-pulse">
-                <div className="flex-1 space-y-2">
-                  <div className="h-4 w-40 bg-gray-100 rounded" />
-                  <div className="h-3 w-24 bg-gray-100 rounded" />
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderBottom: '1px solid var(--border-2)' }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ height: 13, width: 140, background: 'var(--border-2)', borderRadius: 3, marginBottom: 5 }} />
+                  <div style={{ height: 11, width: 80, background: 'var(--border-2)', borderRadius: 3 }} />
                 </div>
-                <div className="h-4 w-20 bg-gray-100 rounded" />
+                <div style={{ height: 13, width: 80, background: 'var(--border-2)', borderRadius: 3 }} />
               </div>
             ))}
           </div>
         ) : loans.length === 0 ? (
-          <div className="py-16 text-center text-gray-400 text-sm">
-            {debouncedSearch ? `No loans matching "${debouncedSearch}"` : 'No loans found'}
+          <div style={{ padding: '48px 16px', textAlign: 'center' }}>
+            <p style={{ fontSize: 13, color: 'var(--ink-3)' }}>{debouncedSearch ? `No loans matching "${debouncedSearch}"` : 'No loans found'}</p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-50">
+          <div>
             {loans.map((loan) => (
               <Link
                 key={loan.id}
                 href={`/loans/${loan.id}`}
-                className="flex items-center gap-4 px-5 py-4 hover:bg-gray-50 transition-colors group"
+                style={{ display: 'grid', gridTemplateColumns: '1fr 130px 120px 100px 32px', alignItems: 'center', padding: '12px 16px', borderBottom: '1px solid var(--border-2)', textDecoration: 'none', color: 'inherit' }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--surface-2)'; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
               >
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-medium text-gray-900 truncate">{loan.clientName}</p>
+                {/* Client / Account */}
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink)', margin: 0 }}>{loan.clientName}</p>
                     {loan.inArrears && (
-                      <AlertCircle size={13} className="text-red-500 flex-shrink-0" />
+                      <AlertCircle size={12} style={{ color: 'var(--amber)', flexShrink: 0 }} />
                     )}
                   </div>
-                  <p className="text-xs text-gray-400">{loan.accountNo} · {loan.productName}</p>
+                  <p style={{ fontSize: 11.5, color: 'var(--ink-3)', margin: 0 }}>{loan.accountNo}</p>
                 </div>
-
-                <div className="hidden sm:block text-right">
-                  <p className="text-sm font-semibold text-gray-900">
-                    {loan.currency.displaySymbol} {formatMMK(loan.totalOutstanding)}
-                  </p>
-                  <p className="text-xs text-gray-400">outstanding</p>
-                </div>
-
+                {/* Product */}
+                <p style={{ fontSize: 13, color: 'var(--ink-2)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{loan.productName}</p>
+                {/* Outstanding */}
+                <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)', fontVariantNumeric: 'tabular-nums', margin: 0 }}>
+                  {loan.currency.displaySymbol} {formatMMK(loan.totalOutstanding)}
+                </p>
+                {/* Status */}
                 {loanStatusBadge(loan.status.id)}
-
-                <ChevronRight size={15} className="text-gray-300 group-hover:text-gray-400 transition flex-shrink-0" />
+                {/* Arrow */}
+                <ChevronRight size={14} style={{ color: 'var(--ink-4)' }} />
               </Link>
             ))}
           </div>
         )}
 
+        {/* Load more */}
         {hasNextPage && (
-          <div className="px-5 py-3 border-t border-gray-100">
+          <div style={{ padding: '10px 16px', borderTop: '1px solid var(--border-2)', textAlign: 'center' }}>
             <button
               onClick={() => fetchNextPage()}
               disabled={isFetchingNextPage}
-              className="w-full text-sm text-primary-600 hover:text-primary-700 font-medium py-1 disabled:opacity-50"
+              style={{ fontSize: 13, fontWeight: 500, color: 'var(--teal)', background: 'none', border: 'none', cursor: isFetchingNextPage ? 'not-allowed' : 'pointer', opacity: isFetchingNextPage ? 0.55 : 1 }}
             >
               {isFetchingNextPage ? 'Loading…' : 'Load more'}
             </button>

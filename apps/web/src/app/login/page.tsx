@@ -26,44 +26,151 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-primary-50">
-      <div className="bg-white rounded-2xl shadow-md w-full max-w-sm p-8">
-        <h1 className="text-2xl font-bold text-primary-900 mb-1">Mifos X</h1>
-        <p className="text-sm text-gray-500 mb-8">Staff Management Portal</p>
-
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-              autoFocus
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-            />
+    <div style={{
+      minHeight: '100dvh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: 'var(--bg)',
+      fontFamily: 'var(--sans)',
+    }}>
+      <div style={{
+        width: '100%',
+        maxWidth: 440,
+        padding: '0 16px',
+      }}>
+        {/* Card */}
+        <div style={{
+          background: 'var(--surface)',
+          border: '1px solid var(--border)',
+          borderRadius: 'var(--r-card)',
+          padding: '36px 32px 32px',
+        }}>
+          {/* Brand */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 28 }}>
+            <div style={{
+              width: 32, height: 32, borderRadius: 7,
+              background: 'var(--teal)',
+              color: '#fff',
+              display: 'grid', placeItems: 'center',
+              fontWeight: 700, fontSize: 15,
+              flexShrink: 0,
+            }}>M</div>
+            <div>
+              <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--ink)', lineHeight: 1.2 }}>Mifos X</div>
+              <div style={{ fontSize: 12, color: 'var(--ink-3)', fontWeight: 500 }}>MFI Management Portal</div>
+            </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-            />
-          </div>
 
-          {error && <p className="text-sm text-red-500">{error}</p>}
+          <h1 style={{ fontSize: 20, fontWeight: 600, color: 'var(--ink)', marginBottom: 4, letterSpacing: '-0.015em' }}>
+            Sign in
+          </h1>
+          <p style={{ fontSize: 13, color: 'var(--ink-3)', marginBottom: 24 }}>
+            Enter your credentials to access the portal
+          </p>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-primary-600 hover:bg-primary-700 text-white rounded-lg py-2 text-sm font-semibold transition disabled:opacity-50"
-          >
-            {loading ? 'Signing in…' : 'Sign in'}
-          </button>
-        </form>
+          <form onSubmit={handleSubmit}>
+            {/* Username */}
+            <div style={{ marginBottom: 14 }}>
+              <label style={{ display: 'block', fontSize: 12.5, fontWeight: 500, color: 'var(--ink-2)', marginBottom: 5 }}>
+                Username
+              </label>
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+                autoFocus
+                placeholder="your.username"
+                style={{
+                  width: '100%',
+                  padding: '8px 10px',
+                  border: '1px solid var(--border)',
+                  borderRadius: 'var(--r-input)',
+                  fontSize: 14,
+                  color: 'var(--ink)',
+                  background: 'var(--surface)',
+                  outline: 'none',
+                  fontFamily: 'var(--sans)',
+                  boxSizing: 'border-box',
+                }}
+                onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--teal)'; }}
+                onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; }}
+              />
+            </div>
+
+            {/* Password */}
+            <div style={{ marginBottom: 20 }}>
+              <label style={{ display: 'block', fontSize: 12.5, fontWeight: 500, color: 'var(--ink-2)', marginBottom: 5 }}>
+                Password
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                placeholder="••••••••"
+                style={{
+                  width: '100%',
+                  padding: '8px 10px',
+                  border: '1px solid var(--border)',
+                  borderRadius: 'var(--r-input)',
+                  fontSize: 14,
+                  color: 'var(--ink)',
+                  background: 'var(--surface)',
+                  outline: 'none',
+                  fontFamily: 'var(--sans)',
+                  boxSizing: 'border-box',
+                }}
+                onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--teal)'; }}
+                onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; }}
+              />
+            </div>
+
+            {/* Error */}
+            {error && (
+              <div style={{
+                padding: '8px 12px',
+                background: 'var(--red-50)',
+                border: '1px solid var(--red)',
+                borderRadius: 'var(--r-input)',
+                fontSize: 13,
+                color: 'var(--red)',
+                marginBottom: 16,
+              }}>
+                {error}
+              </div>
+            )}
+
+            {/* Submit */}
+            <button
+              type="submit"
+              disabled={loading}
+              style={{
+                width: '100%',
+                height: 36,
+                background: loading ? 'var(--ink-3)' : 'var(--teal)',
+                color: '#fff',
+                border: 'none',
+                borderRadius: 'var(--r-btn)',
+                fontSize: 14,
+                fontWeight: 600,
+                cursor: loading ? 'not-allowed' : 'pointer',
+                fontFamily: 'var(--sans)',
+                transition: 'background 100ms',
+              }}
+              onMouseEnter={(e) => { if (!loading) e.currentTarget.style.background = 'var(--teal-700)'; }}
+              onMouseLeave={(e) => { if (!loading) e.currentTarget.style.background = 'var(--teal)'; }}
+            >
+              {loading ? 'Signing in…' : 'Sign in'}
+            </button>
+          </form>
+        </div>
+
+        {/* Footer */}
+        <p style={{ textAlign: 'center', fontSize: 12, color: 'var(--ink-4)', marginTop: 20 }}>
+          Mifos X · MFI Management Platform
+        </p>
       </div>
     </div>
   );

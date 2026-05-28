@@ -7,7 +7,6 @@ import { api } from '@/lib/api';
 import { formatMMK } from '@/lib/format';
 import { AlertTriangle, ChevronRight, Search } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
-import clsx from 'clsx';
 
 interface OverdueLoan {
   loanId: number;
@@ -50,9 +49,9 @@ function useOverdueLoans(daysOverdue: number) {
 }
 
 function daysOverdueBadge(days: number) {
-  if (days >= 90) return <Badge label={`${days}d`} variant="red" />;
-  if (days >= 30) return <Badge label={`${days}d`} variant="amber" />;
-  return <Badge label={`${days}d`} variant="gray" />;
+  if (days >= 90) return <Badge label={`${days}d`} variant="error" />;
+  if (days >= 30) return <Badge label={`${days}d`} variant="warn" />;
+  return <Badge label={`${days}d`} variant="draft" />;
 }
 
 export default function CollectionsPage() {
@@ -69,58 +68,58 @@ export default function CollectionsPage() {
     : overdue;
 
   return (
-    <div className="max-w-6xl mx-auto space-y-5">
-      {/* Today's summary */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+      {/* Page header */}
+      <div style={{ marginBottom: 18 }}>
+        <p style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--ink-3)', marginBottom: 4 }}>Workspace / Collections</p>
+        <h1 style={{ fontSize: 24, fontWeight: 600, color: 'var(--ink)', letterSpacing: '-0.015em', lineHeight: 1.2, margin: 0 }}>Collections</h1>
+      </div>
+
+      {/* 3 KPI mini-cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 18 }}>
         {[
-          {
-            label: 'Scheduled Today',
-            value: todayLoading ? null : formatMMK(today?.scheduled ?? 0),
-            color: 'text-gray-900',
-          },
-          {
-            label: 'Collected Today',
-            value: todayLoading ? null : formatMMK(today?.collected ?? 0),
-            color: 'text-emerald-600',
-          },
-          {
-            label: 'Collection Rate',
-            value: todayLoading ? null : `${today?.collectionRate ?? 0}%`,
-            color: (today?.collectionRate ?? 0) < 80 ? 'text-red-600' : 'text-emerald-600',
-          },
+          { label: 'Scheduled today', value: todayLoading ? null : formatMMK(today?.scheduled ?? 0), color: 'var(--ink)' },
+          { label: 'Collected today', value: todayLoading ? null : formatMMK(today?.collected ?? 0), color: 'var(--green)' },
+          { label: 'Collection rate', value: todayLoading ? null : `${today?.collectionRate ?? 0}%`, color: (today?.collectionRate ?? 0) < 80 ? 'var(--red)' : 'var(--green)' },
         ].map(({ label, value, color }) => (
-          <div key={label} className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-            <p className="text-xs text-gray-500 mb-1">{label}</p>
+          <div key={label} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-card)', padding: '14px 16px 16px', minHeight: 100 }}>
+            <p style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--ink-2)', margin: '0 0 8px' }}>{label}</p>
             {todayLoading ? (
-              <div className="h-7 w-28 bg-gray-100 rounded animate-pulse" />
+              <div style={{ height: 28, width: 100, background: 'var(--border-2)', borderRadius: 4 }} />
             ) : (
-              <p className={clsx('text-2xl font-semibold', color)}>{value}</p>
+              <p style={{ fontSize: 24, fontWeight: 600, color, fontVariantNumeric: 'tabular-nums', margin: 0 }}>{value}</p>
             )}
           </div>
         ))}
       </div>
 
-      {/* Overdue table */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-100 flex flex-col sm:flex-row gap-3">
-          <div className="flex items-center gap-2">
-            <AlertTriangle size={15} className="text-amber-500" />
-            <h3 className="text-sm font-semibold text-gray-700">Overdue Loans</h3>
+      {/* Overdue loans card */}
+      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-card)', overflow: 'hidden' }}>
+        {/* Card header with filter tabs + search */}
+        <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-2)', display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <AlertTriangle size={14} style={{ color: 'var(--amber)' }} />
+            <h3 style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)', margin: 0 }}>Overdue Loans</h3>
           </div>
 
-          <div className="flex items-center gap-3 sm:ml-auto">
-            {/* Days filter */}
-            <div className="flex rounded-lg border border-gray-200 overflow-hidden text-xs">
-              {[1, 30, 90].map((d) => (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 'auto', flexWrap: 'wrap' }}>
+            {/* Tab filter */}
+            <div style={{ display: 'inline-flex', border: '1px solid var(--border)', borderRadius: 'var(--r-btn)', background: 'var(--surface)', padding: 2 }}>
+              {([1, 30, 90] as const).map((d) => (
                 <button
                   key={d}
                   onClick={() => setFilter(d)}
-                  className={clsx(
-                    'px-3 py-1.5 font-medium transition',
-                    filter === d
-                      ? 'bg-primary-600 text-white'
-                      : 'bg-white text-gray-600 hover:bg-gray-50'
-                  )}
+                  style={{
+                    padding: '4px 10px',
+                    borderRadius: 4,
+                    fontSize: 12.5,
+                    fontWeight: filter === d ? 600 : 500,
+                    color: filter === d ? 'var(--ink)' : 'var(--ink-2)',
+                    background: filter === d ? 'var(--surface-2)' : 'transparent',
+                    border: filter === d ? '1px solid var(--border)' : 'none',
+                    cursor: 'pointer',
+                    fontFamily: 'var(--sans)',
+                  }}
                 >
                   {d === 1 ? 'All' : `${d}+ days`}
                 </button>
@@ -128,65 +127,73 @@ export default function CollectionsPage() {
             </div>
 
             {/* Search */}
-            <div className="relative">
-              <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+            <div style={{ position: 'relative' }}>
+              <Search size={13} style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', color: 'var(--ink-3)' }} />
               <input
                 type="text"
                 placeholder="Search…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-7 pr-3 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                style={{
+                  paddingLeft: 26, paddingRight: 10, paddingTop: 5, paddingBottom: 5,
+                  border: '1px solid var(--border)', borderRadius: 'var(--r-input)',
+                  fontSize: 12.5, background: 'var(--surface-2)', color: 'var(--ink)',
+                  outline: 'none', fontFamily: 'var(--sans)',
+                }}
+                onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--teal)'; e.currentTarget.style.background = 'var(--surface)'; }}
+                onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.background = 'var(--surface-2)'; }}
               />
             </div>
           </div>
         </div>
 
+        {/* Table */}
         {overdueLoading ? (
-          <div className="divide-y divide-gray-50">
+          <div>
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="flex items-center gap-4 px-5 py-4 animate-pulse">
-                <div className="flex-1 h-4 bg-gray-100 rounded" />
-                <div className="h-4 w-20 bg-gray-100 rounded" />
+              <div key={i} style={{ display: 'flex', gap: 12, padding: '14px 16px', borderBottom: '1px solid var(--border-2)' }}>
+                <div style={{ flex: 1, height: 13, background: 'var(--border-2)', borderRadius: 3 }} />
+                <div style={{ width: 80, height: 13, background: 'var(--border-2)', borderRadius: 3 }} />
               </div>
             ))}
           </div>
         ) : filtered.length === 0 ? (
-          <div className="py-16 text-center text-gray-400 text-sm">
-            No overdue loans {filter > 1 ? `past ${filter} days` : ''}
+          <div style={{ padding: '48px 16px', textAlign: 'center' }}>
+            <p style={{ fontSize: 13, color: 'var(--ink-3)' }}>No overdue loans{filter > 1 ? ` past ${filter} days` : ''}</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
-                <tr>
-                  <th className="px-4 py-3 text-left">Client</th>
-                  <th className="px-4 py-3 text-left">Account</th>
-                  <th className="px-4 py-3 text-left">Mobile</th>
-                  <th className="px-4 py-3 text-center">Oldest Due</th>
-                  <th className="px-4 py-3 text-center">Days Overdue</th>
-                  <th className="px-4 py-3 text-right">Overdue Amount</th>
-                  <th />
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+              <thead>
+                <tr style={{ background: 'var(--surface-2)' }}>
+                  {['Client', 'Account', 'Mobile', 'Oldest due', 'Days overdue', 'Overdue amount', ''].map((col, i) => (
+                    <th key={col + i} style={{
+                      padding: '8px 14px',
+                      textAlign: i >= 5 ? 'right' : i === 4 ? 'center' : 'left',
+                      fontSize: 11.5, fontWeight: 600, color: 'var(--ink-3)',
+                      textTransform: 'uppercase', letterSpacing: '0.04em',
+                      borderBottom: '1px solid var(--border-2)',
+                    }}>{col}</th>
+                  ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody>
                 {filtered.map((loan) => (
-                  <tr key={loan.loanId} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3 font-medium text-gray-900">{loan.clientName}</td>
-                    <td className="px-4 py-3 text-gray-500">{loan.accountNo}</td>
-                    <td className="px-4 py-3 text-gray-500">{loan.mobileNo || '—'}</td>
-                    <td className="px-4 py-3 text-center text-gray-500">
-                      {new Date(loan.oldestOverdueDate).toLocaleDateString('en-GB', {
-                        day: '2-digit', month: 'short', year: 'numeric',
-                      })}
+                  <tr key={loan.loanId} style={{ borderBottom: '1px solid var(--border-2)' }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--surface-2)'; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
+                  >
+                    <td style={{ padding: '12px 14px', fontWeight: 500, color: 'var(--ink)' }}>{loan.clientName}</td>
+                    <td style={{ padding: '12px 14px', color: 'var(--ink-2)', fontFamily: 'var(--mono)', fontSize: 12 }}>{loan.accountNo}</td>
+                    <td style={{ padding: '12px 14px', color: 'var(--ink-2)' }}>{loan.mobileNo || '—'}</td>
+                    <td style={{ padding: '12px 14px', color: 'var(--ink-2)' }}>
+                      {new Date(loan.oldestOverdueDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
                     </td>
-                    <td className="px-4 py-3 text-center">{daysOverdueBadge(loan.daysOverdue)}</td>
-                    <td className="px-4 py-3 text-right font-semibold text-red-600">{formatMMK(loan.totalOverdue)}</td>
-                    <td className="px-4 py-3">
-                      <Link
-                        href={`/loans/${loan.loanId}`}
-                        className="flex items-center justify-end text-gray-300 hover:text-primary-600 transition"
-                      >
-                        <ChevronRight size={15} />
+                    <td style={{ padding: '12px 14px', textAlign: 'center' }}>{daysOverdueBadge(loan.daysOverdue)}</td>
+                    <td style={{ padding: '12px 14px', textAlign: 'right', fontWeight: 600, color: 'var(--amber)', fontVariantNumeric: 'tabular-nums' }}>{formatMMK(loan.totalOverdue)}</td>
+                    <td style={{ padding: '12px 14px' }}>
+                      <Link href={`/loans/${loan.loanId}`} style={{ display: 'flex', justifyContent: 'flex-end', color: 'var(--ink-4)', textDecoration: 'none' }}>
+                        <ChevronRight size={14} />
                       </Link>
                     </td>
                   </tr>

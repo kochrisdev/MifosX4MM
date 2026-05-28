@@ -9,7 +9,6 @@ import {
   ArrowLeft, Phone, Mail, MapPin, Calendar,
   Landmark, ChevronRight, UserCheck,
 } from 'lucide-react';
-import clsx from 'clsx';
 
 function fmtDate(arr?: number[]) {
   if (!arr) return '—';
@@ -19,127 +18,139 @@ function fmtDate(arr?: number[]) {
   });
 }
 
-function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
-  return (
-    <div className="flex items-start gap-3 py-3 border-b border-gray-50 last:border-0">
-      <span className="mt-0.5 text-gray-400">{icon}</span>
-      <div>
-        <p className="text-xs text-gray-400">{label}</p>
-        <p className="text-sm text-gray-900">{value}</p>
-      </div>
-    </div>
-  );
-}
-
 export default function ClientDetailPage({ params }: { params: Promise<{ clientId: string }> }) {
   const { clientId } = use(params);
   const { data: client, isLoading, isError } = useClient(clientId);
   const { data: loans, isLoading: loansLoading } = useClientLoans(clientId);
 
   if (isLoading) return <PageSkeleton />;
+
   if (isError || !client) return (
-    <div className="max-w-3xl mx-auto">
-      <Link href="/clients" className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-4">
-        <ArrowLeft size={14} /> Back to Clients
+    <div style={{ maxWidth: 960, margin: '0 auto' }}>
+      <Link href="/clients" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12.5, color: 'var(--ink-3)', textDecoration: 'none', marginBottom: 14 }}>
+        <ArrowLeft size={13} /> Clients
       </Link>
-      <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">
+      <div style={{ padding: '10px 14px', background: 'var(--red-50)', border: '1px solid var(--red)', borderRadius: 'var(--r-btn)', fontSize: 13, color: 'var(--red)' }}>
         Client not found.
       </div>
     </div>
   );
 
   return (
-    <div className="max-w-4xl mx-auto space-y-5">
-      <Link href="/clients" className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
-        <ArrowLeft size={14} /> Back to Clients
+    <div style={{ maxWidth: 960, margin: '0 auto' }}>
+      {/* Back link */}
+      <Link href="/clients" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12.5, fontWeight: 500, color: 'var(--ink-3)', textDecoration: 'none', marginBottom: 14 }}>
+        <ArrowLeft size={13} /> Clients
       </Link>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        {/* Left col: profile card */}
-        <div className="space-y-5">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 text-center">
-            <div className="w-16 h-16 rounded-full bg-primary-600 flex items-center justify-center text-white text-xl font-bold mx-auto mb-3">
-              {client.displayName.split(' ').slice(0, 2).map((w) => w[0]).join('').toUpperCase()}
+      <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: 16 }}>
+        {/* Left column */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {/* Profile card */}
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-card)', padding: '24px 16px', textAlign: 'center' }}>
+            <div style={{
+              width: 52, height: 52, borderRadius: '50%',
+              background: 'var(--teal)', color: '#fff',
+              display: 'grid', placeItems: 'center',
+              fontSize: 18, fontWeight: 700,
+              margin: '0 auto 10px',
+            }}>
+              {client.displayName.split(' ').slice(0, 2).map((w: string) => w[0]).join('').toUpperCase()}
             </div>
-            <h2 className="text-lg font-semibold text-gray-900">{client.displayName}</h2>
-            <p className="text-xs text-gray-400 mt-0.5">{client.accountNo}</p>
-            <div className="mt-3">
-              <Badge
-                label={client.status.value}
-                variant={client.status.id === 300 ? 'green' : 'gray'}
-              />
-            </div>
+            <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--ink)', margin: '0 0 2px' }}>{client.displayName}</h2>
+            <p style={{ fontSize: 12, color: 'var(--ink-3)', margin: '0 0 10px' }}>{client.accountNo}</p>
+            <Badge label={client.status.value} variant={client.status.id === 300 ? 'ok' : 'draft'} />
           </div>
 
-          {/* KYC status placeholder */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-            <div className="flex items-center gap-2 mb-3">
-              <UserCheck size={15} className="text-gray-400" />
-              <p className="text-sm font-medium text-gray-700">KYC Status</p>
+          {/* KYC card */}
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-card)', padding: '14px 16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+              <UserCheck size={13} style={{ color: 'var(--ink-3)' }} />
+              <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)', margin: 0 }}>KYC Status</p>
             </div>
-            <Badge label="Verified" variant="green" />
+            <Badge label="Verified" variant="ok" />
           </div>
         </div>
 
-        {/* Right col: details + loans */}
-        <div className="lg:col-span-2 space-y-5">
-          {/* Contact & details */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-            <h3 className="text-sm font-semibold text-gray-700 mb-1">Client Details</h3>
-            <div>
-              <InfoRow icon={<MapPin size={14} />}  label="Branch / Office" value={client.officeName} />
-              {client.mobileNo     && <InfoRow icon={<Phone size={14} />}    label="Mobile"      value={client.mobileNo} />}
-              {client.emailAddress && <InfoRow icon={<Mail size={14} />}     label="Email"       value={client.emailAddress} />}
-              {client.gender       && <InfoRow icon={<UserCheck size={14} />} label="Gender"     value={client.gender.value} />}
-              {client.dateOfBirth  && <InfoRow icon={<Calendar size={14} />}  label="Date of Birth" value={fmtDate(client.dateOfBirth)} />}
-              <InfoRow icon={<Calendar size={14} />} label="Member Since" value={fmtDate(client.activationDate)} />
+        {/* Right column */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {/* Client details card */}
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-card)', overflow: 'hidden' }}>
+            <div style={{ padding: '14px 18px 12px', borderBottom: '1px solid var(--border-2)' }}>
+              <h3 style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)', letterSpacing: '-0.005em', margin: 0 }}>Client Details</h3>
+            </div>
+            <div style={{ padding: '4px 18px 8px' }}>
+              {([
+                { icon: <MapPin size={13} />, label: 'Branch / Office', value: client.officeName },
+                client.mobileNo && { icon: <Phone size={13} />, label: 'Mobile', value: client.mobileNo },
+                client.emailAddress && { icon: <Mail size={13} />, label: 'Email', value: client.emailAddress },
+                client.gender && { icon: <UserCheck size={13} />, label: 'Gender', value: client.gender.value },
+                client.dateOfBirth && { icon: <Calendar size={13} />, label: 'Date of Birth', value: fmtDate(client.dateOfBirth) },
+                { icon: <Calendar size={13} />, label: 'Member Since', value: fmtDate(client.activationDate) },
+              ] as Array<{ icon: React.ReactNode; label: string; value: string } | false>)
+                .filter((row): row is { icon: React.ReactNode; label: string; value: string } => Boolean(row))
+                .map((row) => (
+                  <div key={row.label} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 0', borderBottom: '1px solid var(--border-2)' }}>
+                    <span style={{ color: 'var(--ink-3)', marginTop: 1, flexShrink: 0 }}>{row.icon}</span>
+                    <div>
+                      <p style={{ fontSize: 11.5, color: 'var(--ink-3)', margin: '0 0 2px' }}>{row.label}</p>
+                      <p style={{ fontSize: 13, color: 'var(--ink)', margin: 0 }}>{row.value}</p>
+                    </div>
+                  </div>
+                ))}
             </div>
           </div>
 
-          {/* Loan accounts */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Landmark size={15} className="text-gray-400" />
-                <h3 className="text-sm font-semibold text-gray-700">Loan Accounts</h3>
+          {/* Loan accounts card */}
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-card)', overflow: 'hidden' }}>
+            <div style={{ padding: '14px 18px 12px', borderBottom: '1px solid var(--border-2)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Landmark size={14} style={{ color: 'var(--ink-3)' }} />
+                <h3 style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)', letterSpacing: '-0.005em', margin: 0 }}>Loan Accounts</h3>
               </div>
-              <Link
-                href={`/loans/new?clientId=${client.id}`}
-                className="text-xs text-primary-600 font-medium hover:underline"
-              >
-                + New Loan
+              <Link href={`/loans/new?clientId=${client.id}`} style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--teal)', textDecoration: 'none' }}>
+                + Apply for loan
               </Link>
             </div>
 
             {loansLoading ? (
-              <div className="p-5 space-y-3">
-                {[1, 2].map((i) => <div key={i} className="h-14 bg-gray-50 rounded-lg animate-pulse" />)}
+              <div style={{ padding: 16 }}>
+                {[1, 2].map((i) => (
+                  <div key={i} style={{ height: 52, background: 'var(--surface-2)', borderRadius: 6, marginBottom: 8 }} />
+                ))}
               </div>
             ) : !loans || loans.length === 0 ? (
-              <div className="py-10 text-center text-gray-400 text-sm">No loan accounts</div>
+              <div style={{ padding: '32px 16px', textAlign: 'center' }}>
+                <p style={{ fontSize: 13, color: 'var(--ink-3)', margin: 0 }}>No loan accounts</p>
+              </div>
             ) : (
-              <div className="divide-y divide-gray-50">
-                {loans.map((loan) => (
+              <div>
+                {loans.map((loan: any) => (
                   <Link
                     key={loan.id}
                     href={`/loans/${loan.id}`}
-                    className={clsx(
-                      'flex items-center gap-4 px-5 py-4 hover:bg-gray-50 transition-colors group',
-                      loan.inArrears && 'border-l-4 border-red-400'
-                    )}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 12,
+                      padding: '12px 18px',
+                      borderBottom: '1px solid var(--border-2)',
+                      textDecoration: 'none', color: 'inherit',
+                      borderLeft: loan.inArrears ? '3px solid var(--amber)' : '3px solid transparent',
+                    }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--surface-2)'; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
                   >
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900">{loan.productName}</p>
-                      <p className="text-xs text-gray-400">{loan.accountNo}</p>
+                    <div style={{ flex: 1 }}>
+                      <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink)', margin: 0 }}>{loan.productName}</p>
+                      <p style={{ fontSize: 11.5, color: 'var(--ink-3)', margin: 0 }}>{loan.accountNo}</p>
                     </div>
-                    <div className="text-right mr-3">
-                      <p className="text-sm font-semibold text-gray-900">
+                    <div style={{ textAlign: 'right', marginRight: 10 }}>
+                      <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)', fontVariantNumeric: 'tabular-nums', margin: 0 }}>
                         {loan.currency.displaySymbol} {formatMMK(loan.totalOutstanding)}
                       </p>
-                      <p className="text-xs text-gray-400">outstanding</p>
+                      <p style={{ fontSize: 11.5, color: 'var(--ink-3)', margin: 0 }}>outstanding</p>
                     </div>
                     {loanStatusBadge(loan.status.id)}
-                    <ChevronRight size={14} className="text-gray-300 group-hover:text-gray-400 flex-shrink-0" />
+                    <ChevronRight size={13} style={{ color: 'var(--ink-4)', flexShrink: 0 }} />
                   </Link>
                 ))}
               </div>
@@ -153,13 +164,16 @@ export default function ClientDetailPage({ params }: { params: Promise<{ clientI
 
 function PageSkeleton() {
   return (
-    <div className="max-w-4xl mx-auto space-y-5 animate-pulse">
-      <div className="h-5 w-28 bg-gray-100 rounded" />
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        <div className="bg-white rounded-xl border border-gray-100 p-6 h-48" />
-        <div className="lg:col-span-2 space-y-5">
-          <div className="bg-white rounded-xl border border-gray-100 p-5 h-48" />
-          <div className="bg-white rounded-xl border border-gray-100 p-5 h-40" />
+    <div style={{ maxWidth: 960, margin: '0 auto' }}>
+      <div style={{ height: 14, width: 80, background: 'var(--border-2)', borderRadius: 3, marginBottom: 14 }} />
+      <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: 16 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-card)', height: 180 }} />
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-card)', height: 80 }} />
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-card)', height: 200 }} />
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-card)', height: 160 }} />
         </div>
       </div>
     </div>

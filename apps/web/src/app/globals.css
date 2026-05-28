@@ -1,3 +1,67 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --bg:            #F7F5F0;
+  --surface:       #FFFFFF;
+  --surface-2:     #FAF8F3;
+  --surface-3:     #F0EDE5;
+  --border:        #E5E1D8;
+  --border-2:      #EFEBE2;
+  --border-strong: #D7D1C3;
+  --ink:    #1A1A2E;
+  --ink-2:  #4F4F62;
+  --ink-3:  #7C7B8A;
+  --ink-4:  #A8A7B4;
+  --teal:      #0D6B6B;
+  --teal-700:  #0A5757;
+  --teal-100:  #D0E4E4;
+  --teal-50:   #E6F0F0;
+  --amber:    #D4840A;
+  --amber-50: #FBF1DE;
+  --green:    #2F8F5F;
+  --green-50: #E6F2EC;
+  --red:      #B5443B;
+  --red-50:   #F7E6E4;
+  --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+  --t-h1:        24px;
+  --t-h2:        14px;
+  --t-kpi:       28px;
+  --t-kpi-unit:  16px;
+  --t-body:      14px;
+  --t-body-sm:   13px;
+  --t-meta:      12.5px;
+  --t-micro:     11.5px;
+  --t-cap:       10.5px;
+  --r-card:    8px;
+  --r-btn:     6px;
+  --r-input:   6px;
+  --r-pill:    999px;
+  --r-chip:    4px;
+  --s-1:  4px;
+  --s-2:  8px;
+  --s-3:  12px;
+  --s-4:  16px;
+  --s-5:  20px;
+  --s-6:  24px;
+  --s-7:  32px;
+  --sidebar-w:  240px;
+  --topbar-h:   52px;
+  --ease:       cubic-bezier(.4, 0, .2, 1);
+  --dur-fast:   100ms;
+  --dur:        160ms;
+}
+
+@layer base {
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    -webkit-font-smoothing: antialiased;
+    font-size: 14px;
+  }
+}

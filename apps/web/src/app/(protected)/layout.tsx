@@ -3,11 +3,11 @@ import TopBar from '@/components/layout/TopBar';
 
 export default function ProtectedLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="grid h-screen overflow-hidden" style={{ gridTemplateColumns: 'var(--sidebar-w) 1fr' }}>
       <Sidebar />
-      <div className="ml-60 flex flex-col flex-1 overflow-hidden">
+      <div className="flex flex-col overflow-hidden min-w-0">
         <TopBar />
-        <main className="flex-1 overflow-y-auto bg-gray-50 p-6">
+        <main className="flex-1 overflow-y-auto p-6 pb-12" style={{ background: 'var(--bg)' }}>
           {children}
         </main>
       </div>

@@ -7,9 +7,8 @@ import { Badge, loanStatusBadge } from '@/components/ui/Badge';
 import { formatMMK, formatPercent } from '@/lib/format';
 import {
   ArrowLeft, CheckCircle, XCircle, Banknote,
-  Calendar, Send, AlertCircle,
+  Send, AlertCircle,
 } from 'lucide-react';
-import clsx from 'clsx';
 
 function fmtDate(arr?: number[]) {
   if (!arr) return '—';
@@ -67,11 +66,13 @@ export default function LoanDetailPage({ params }: { params: Promise<{ loanId: s
 
   if (isLoading) return <Skeleton />;
   if (isError || !loan) return (
-    <div className="max-w-4xl mx-auto">
-      <Link href="/loans" className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-4">
-        <ArrowLeft size={14} /> Back
+    <div style={{ maxWidth: 960, margin: '0 auto' }}>
+      <Link href="/loans" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12.5, fontWeight: 500, color: 'var(--ink-3)', textDecoration: 'none', marginBottom: 14 }}>
+        <ArrowLeft size={13} /> Back
       </Link>
-      <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">Loan not found.</div>
+      <div style={{ padding: '10px 14px', background: 'var(--red-50)', border: '1px solid var(--red)', borderRadius: 'var(--r-btn)', fontSize: 13, color: 'var(--red)' }}>
+        Loan not found.
+      </div>
     </div>
   );
 
@@ -82,90 +83,88 @@ export default function LoanDetailPage({ params }: { params: Promise<{ loanId: s
   const canReject    = [100, 200].includes(statusId);
 
   return (
-    <div className="max-w-4xl mx-auto space-y-5">
-      <Link href={`/clients/${loan.clientId}`} className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
-        <ArrowLeft size={14} /> {loan.clientName}
+    <div style={{ maxWidth: 960, margin: '0 auto' }}>
+      <Link href={`/clients/${loan.clientId}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12.5, fontWeight: 500, color: 'var(--ink-3)', textDecoration: 'none', marginBottom: 14 }}>
+        <ArrowLeft size={13} /> {loan.clientName}
       </Link>
 
       {actionMsg && (
-        <div className={clsx(
-          'flex items-start gap-2 text-sm rounded-lg px-4 py-3 border',
-          actionMsg.type === 'ok' ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-red-50 border-red-200 text-red-700'
-        )}>
-          {actionMsg.type === 'ok' ? <CheckCircle size={15} className="mt-0.5 flex-shrink-0" /> : <XCircle size={15} className="mt-0.5 flex-shrink-0" />}
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 8,
+          padding: '8px 12px', marginBottom: 14,
+          background: actionMsg.type === 'ok' ? 'var(--green-50)' : 'var(--red-50)',
+          border: `1px solid ${actionMsg.type === 'ok' ? 'var(--green)' : 'var(--red)'}`,
+          borderRadius: 'var(--r-btn)',
+          fontSize: 13,
+          color: actionMsg.type === 'ok' ? 'var(--green)' : 'var(--red)',
+        }}>
+          {actionMsg.type === 'ok' ? <CheckCircle size={14} /> : <XCircle size={14} />}
           {actionMsg.text}
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        {/* Summary */}
-        <div className="lg:col-span-2 space-y-5">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-            <div className="flex items-start justify-between mb-4">
+      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 16 }}>
+        {/* Left column */}
+        <div>
+          {/* Loan summary card */}
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-card)', padding: '18px', marginBottom: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
               <div>
-                <h2 className="text-base font-semibold text-gray-900">{loan.productName}</h2>
-                <p className="text-xs text-gray-400">{loan.accountNo}</p>
+                <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--ink)', margin: '0 0 2px' }}>{loan.productName}</h2>
+                <p style={{ fontSize: 12, color: 'var(--ink-3)', margin: 0, fontFamily: 'var(--mono)' }}>{loan.accountNo}</p>
               </div>
               {loanStatusBadge(statusId)}
             </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            {/* 3-column grid of stats */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
               {[
-                { label: 'Principal',    value: formatMMK(loan.principal) },
-                { label: 'Outstanding',  value: formatMMK(loan.totalOutstanding) },
-                { label: 'Repaid',       value: formatMMK(loan.totalRepayment) },
-                { label: 'Interest Rate',value: formatPercent(loan.annualInterestRate) + ' p.a.' },
-                { label: 'Disbursed',    value: fmtDate(loan.disbursementDate) },
-                { label: 'Maturity',     value: fmtDate(loan.expectedMaturityDate) },
+                { label: 'Principal', value: formatMMK(loan.principal) },
+                { label: 'Outstanding', value: formatMMK(loan.totalOutstanding) },
+                { label: 'Repaid', value: formatMMK(loan.totalRepayment) },
+                { label: 'Interest Rate', value: formatPercent(loan.annualInterestRate) + ' p.a.' },
+                { label: 'Disbursed', value: fmtDate(loan.disbursementDate) },
+                { label: 'Maturity', value: fmtDate(loan.expectedMaturityDate) },
               ].map(({ label, value }) => (
                 <div key={label}>
-                  <p className="text-xs text-gray-400">{label}</p>
-                  <p className="text-sm font-semibold text-gray-900">{value}</p>
+                  <p style={{ fontSize: 11.5, color: 'var(--ink-3)', margin: '0 0 3px' }}>{label}</p>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)', fontVariantNumeric: 'tabular-nums', margin: 0 }}>{value}</p>
                 </div>
               ))}
             </div>
-
+            {/* Arrears warning */}
             {loan.inArrears && (
-              <div className="mt-4 flex items-center gap-2 text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
-                <AlertCircle size={14} /> This loan is in arrears
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 14, padding: '8px 10px', background: 'var(--amber-50)', border: '1px solid var(--amber)', borderRadius: 'var(--r-btn)', fontSize: 12.5, color: 'var(--amber)' }}>
+                <AlertCircle size={13} /> This loan is in arrears
               </div>
             )}
           </div>
 
-          {/* Repayment schedule */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="px-5 py-4 border-b border-gray-100">
-              <h3 className="text-sm font-semibold text-gray-700">Repayment Schedule</h3>
+          {/* Repayment schedule card */}
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-card)', overflow: 'hidden', marginBottom: 12 }}>
+            <div style={{ padding: '14px 18px 12px', borderBottom: '1px solid var(--border-2)' }}>
+              <h3 style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)', letterSpacing: '-0.005em', margin: 0 }}>Repayment Schedule</h3>
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
-                  <tr>
-                    <th className="px-4 py-3 text-left">#</th>
-                    <th className="px-4 py-3 text-left">Due Date</th>
-                    <th className="px-4 py-3 text-right">Principal</th>
-                    <th className="px-4 py-3 text-right">Interest</th>
-                    <th className="px-4 py-3 text-right">Total Due</th>
-                    <th className="px-4 py-3 text-center">Status</th>
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                <thead>
+                  <tr style={{ background: 'var(--surface-2)' }}>
+                    {['#', 'Due Date', 'Principal', 'Interest', 'Total Due', 'Status'].map((col, i) => (
+                      <th key={col} style={{ padding: '8px 14px', textAlign: i >= 2 && i < 5 ? 'right' : i === 5 ? 'center' : 'left', fontSize: 11.5, fontWeight: 600, color: 'var(--ink-3)', textTransform: 'uppercase', letterSpacing: '0.04em', borderBottom: '1px solid var(--border-2)' }}>
+                        {col}
+                      </th>
+                    ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {(loan.repaymentSchedule?.periods ?? []).map((p) => (
-                    <tr
-                      key={p.period}
-                      className={clsx(
-                        p.complete ? 'bg-emerald-50/30' : ''
-                      )}
-                    >
-                      <td className="px-4 py-3 text-gray-500">{p.period}</td>
-                      <td className="px-4 py-3 text-gray-900">{fmtDate(p.dueDate)}</td>
-                      <td className="px-4 py-3 text-right text-gray-900">{formatMMK(p.principalDue)}</td>
-                      <td className="px-4 py-3 text-right text-gray-900">{formatMMK(p.interestDue)}</td>
-                      <td className="px-4 py-3 text-right font-medium text-gray-900">{formatMMK(p.totalDueForPeriod)}</td>
-                      <td className="px-4 py-3 text-center">
-                        {p.complete
-                          ? <Badge label="Paid"    variant="green" />
-                          : <Badge label="Pending" variant="gray"  />}
+                <tbody>
+                  {(loan.repaymentSchedule?.periods ?? []).map((p: any) => (
+                    <tr key={p.period} style={{ background: p.complete ? 'rgba(230,242,236,0.4)' : 'transparent', borderBottom: '1px solid var(--border-2)' }}>
+                      <td style={{ padding: '10px 14px', color: 'var(--ink-3)' }}>{p.period}</td>
+                      <td style={{ padding: '10px 14px', color: 'var(--ink)' }}>{fmtDate(p.dueDate)}</td>
+                      <td style={{ padding: '10px 14px', textAlign: 'right', color: 'var(--ink)', fontVariantNumeric: 'tabular-nums' }}>{formatMMK(p.principalDue)}</td>
+                      <td style={{ padding: '10px 14px', textAlign: 'right', color: 'var(--ink)', fontVariantNumeric: 'tabular-nums' }}>{formatMMK(p.interestDue)}</td>
+                      <td style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 600, color: 'var(--ink)', fontVariantNumeric: 'tabular-nums' }}>{formatMMK(p.totalDueForPeriod)}</td>
+                      <td style={{ padding: '10px 14px', textAlign: 'center' }}>
+                        {p.complete ? <Badge label="Paid" variant="ok" /> : <Badge label="Pending" variant="draft" />}
                       </td>
                     </tr>
                   ))}
@@ -176,27 +175,25 @@ export default function LoanDetailPage({ params }: { params: Promise<{ loanId: s
 
           {/* Transaction history */}
           {loan.transactions?.length > 0 && (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-              <div className="px-5 py-4 border-b border-gray-100">
-                <h3 className="text-sm font-semibold text-gray-700">Transaction History</h3>
+            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-card)', overflow: 'hidden', marginBottom: 12 }}>
+              <div style={{ padding: '14px 18px 12px', borderBottom: '1px solid var(--border-2)' }}>
+                <h3 style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)', letterSpacing: '-0.005em', margin: 0 }}>Transaction History</h3>
               </div>
-              <div className="divide-y divide-gray-50">
-                {loan.transactions.filter((t) => !t.reversed).map((tx) => (
-                  <div key={tx.id} className="flex items-center justify-between px-5 py-3">
-                    <div className="flex items-center gap-3">
-                      <div className="p-1.5 rounded-lg bg-gray-50">
+              <div>
+                {loan.transactions.filter((t: any) => !t.reversed).map((tx: any) => (
+                  <div key={tx.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 18px', borderBottom: '1px solid var(--border-2)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <div style={{ width: 30, height: 30, borderRadius: 6, background: tx.type.value === 'Repayment' ? 'var(--teal-50)' : 'var(--surface-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                         {tx.type.value === 'Repayment'
-                          ? <Banknote size={14} className="text-emerald-600" />
-                          : <Send size={14} className="text-blue-600" />}
+                          ? <Banknote size={14} style={{ color: 'var(--teal)' }} />
+                          : <Send size={14} style={{ color: 'var(--ink-3)' }} />}
                       </div>
                       <div>
-                        <p className="text-sm text-gray-900">{tx.type.value}</p>
-                        <p className="text-xs text-gray-400 flex items-center gap-1">
-                          <Calendar size={11} /> {fmtDate(tx.date)}
-                        </p>
+                        <p style={{ fontSize: 13, color: 'var(--ink)', margin: '0 0 1px' }}>{tx.type.value}</p>
+                        <p style={{ fontSize: 11.5, color: 'var(--ink-3)', margin: 0 }}>{fmtDate(tx.date)}</p>
                       </div>
                     </div>
-                    <p className="text-sm font-semibold text-gray-900">{formatMMK(tx.amount)}</p>
+                    <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)', fontVariantNumeric: 'tabular-nums', margin: 0 }}>{formatMMK(tx.amount)}</p>
                   </div>
                 ))}
               </div>
@@ -204,120 +201,91 @@ export default function LoanDetailPage({ params }: { params: Promise<{ loanId: s
           )}
         </div>
 
-        {/* Actions sidebar */}
-        <div className="space-y-4">
-          {/* Record repayment */}
+        {/* Right column — Actions panel */}
+        <div>
+          {/* Record Repayment */}
           {canRepay && (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">Record Repayment</h3>
+            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-card)', padding: '16px', marginBottom: 12 }}>
+              <h3 style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)', margin: '0 0 12px' }}>Record Repayment</h3>
               {!showRepay ? (
                 <button
                   onClick={() => setShowRepay(true)}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition"
+                  style={{ width: '100%', height: 34, background: 'var(--teal)', color: '#fff', border: 'none', borderRadius: 'var(--r-btn)', fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, fontFamily: 'var(--sans)' }}
                 >
-                  <Banknote size={15} /> Record Cash Payment
+                  <Banknote size={14} /> Record Cash Payment
                 </button>
               ) : (
-                <div className="space-y-3">
-                  <div>
-                    <label className="text-xs text-gray-500">Amount (MMK)</label>
-                    <input
-                      type="number"
-                      value={repayAmount}
-                      onChange={(e) => setRepayAmount(e.target.value)}
-                      className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-                      placeholder="0"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-500">Date</label>
-                    <input
-                      type="date"
-                      value={repayDate}
-                      onChange={(e) => setRepayDate(e.target.value)}
-                      className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-500">Note (optional)</label>
-                    <input
-                      type="text"
-                      value={repayNote}
-                      onChange={(e) => setRepayNote(e.target.value)}
-                      className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-                      placeholder="Payment note…"
-                    />
-                  </div>
-                  <div className="flex gap-2">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {[
+                    { label: 'Amount (MMK)', type: 'number', value: repayAmount, onChange: (e: any) => setRepayAmount(e.target.value), placeholder: '0' },
+                    { label: 'Date', type: 'date', value: repayDate, onChange: (e: any) => setRepayDate(e.target.value), placeholder: '' },
+                    { label: 'Note (optional)', type: 'text', value: repayNote, onChange: (e: any) => setRepayNote(e.target.value), placeholder: 'Payment note…' },
+                  ].map(({ label, type, value, onChange, placeholder }) => (
+                    <div key={label}>
+                      <label style={{ display: 'block', fontSize: 12, color: 'var(--ink-3)', marginBottom: 4 }}>{label}</label>
+                      <input type={type} value={value} onChange={onChange} placeholder={placeholder}
+                        style={{ width: '100%', padding: '7px 10px', border: '1px solid var(--border)', borderRadius: 'var(--r-input)', fontSize: 13, color: 'var(--ink)', fontFamily: 'var(--sans)', outline: 'none', boxSizing: 'border-box', background: 'var(--surface)' }} />
+                    </div>
+                  ))}
+                  <div style={{ display: 'flex', gap: 8 }}>
                     <button
                       onClick={handleRepay}
                       disabled={postRepayment.isPending}
-                      className="flex-1 py-2 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition disabled:opacity-50"
+                      style={{ flex: 1, height: 32, background: 'var(--teal)', color: '#fff', border: 'none', borderRadius: 'var(--r-btn)', fontSize: 13, fontWeight: 600, cursor: postRepayment.isPending ? 'not-allowed' : 'pointer', opacity: postRepayment.isPending ? 0.55 : 1, fontFamily: 'var(--sans)' }}
                     >
                       {postRepayment.isPending ? 'Saving…' : 'Submit'}
                     </button>
                     <button
                       onClick={() => setShowRepay(false)}
-                      className="px-3 py-2 text-sm text-gray-500 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
-                    >
-                      Cancel
-                    </button>
+                      style={{ height: 32, padding: '0 12px', border: '1px solid var(--border)', borderRadius: 'var(--r-btn)', fontSize: 13, color: 'var(--ink-2)', background: 'var(--surface)', cursor: 'pointer', fontFamily: 'var(--sans)' }}
+                    >Cancel</button>
                   </div>
                 </div>
               )}
             </div>
           )}
 
-          {/* Loan workflow actions */}
+          {/* Loan Actions */}
           {(canApprove || canDisburse || canReject) && (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 space-y-2">
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">Loan Actions</h3>
-              {canApprove && (
-                <button
-                  onClick={() => handleAction('approve')}
-                  disabled={loanAction.isPending}
-                  className="w-full flex items-center justify-center gap-2 py-2.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition disabled:opacity-50"
-                >
-                  <CheckCircle size={15} /> Approve Loan
-                </button>
-              )}
-              {canDisburse && (
-                <button
-                  onClick={() => handleAction('disburse')}
-                  disabled={loanAction.isPending}
-                  className="w-full flex items-center justify-center gap-2 py-2.5 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition disabled:opacity-50"
-                >
-                  <Send size={15} /> Disburse Loan
-                </button>
-              )}
-              {canReject && (
-                <button
-                  onClick={() => handleAction('reject')}
-                  disabled={loanAction.isPending}
-                  className="w-full flex items-center justify-center gap-2 py-2.5 border border-red-200 text-red-600 text-sm font-medium rounded-lg hover:bg-red-50 transition disabled:opacity-50"
-                >
-                  <XCircle size={15} /> Reject Loan
-                </button>
-              )}
+            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-card)', padding: '16px', marginBottom: 12 }}>
+              <h3 style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)', margin: '0 0 12px' }}>Loan Actions</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {canApprove && (
+                  <button onClick={() => handleAction('approve')} disabled={loanAction.isPending}
+                    style={{ width: '100%', height: 34, background: 'var(--teal)', color: '#fff', border: 'none', borderRadius: 'var(--r-btn)', fontSize: 13, fontWeight: 600, cursor: loanAction.isPending ? 'not-allowed' : 'pointer', opacity: loanAction.isPending ? 0.55 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, fontFamily: 'var(--sans)' }}>
+                    <CheckCircle size={14} /> Approve Loan
+                  </button>
+                )}
+                {canDisburse && (
+                  <button onClick={() => handleAction('disburse')} disabled={loanAction.isPending}
+                    style={{ width: '100%', height: 34, background: 'var(--ink)', color: '#fff', border: 'none', borderRadius: 'var(--r-btn)', fontSize: 13, fontWeight: 600, cursor: loanAction.isPending ? 'not-allowed' : 'pointer', opacity: loanAction.isPending ? 0.55 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, fontFamily: 'var(--sans)' }}>
+                    <Send size={14} /> Disburse Loan
+                  </button>
+                )}
+                {canReject && (
+                  <button onClick={() => handleAction('reject')} disabled={loanAction.isPending}
+                    style={{ width: '100%', height: 34, background: 'var(--surface)', color: 'var(--red)', border: '1px solid var(--red)', borderRadius: 'var(--r-btn)', fontSize: 13, fontWeight: 600, cursor: loanAction.isPending ? 'not-allowed' : 'pointer', opacity: loanAction.isPending ? 0.55 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, fontFamily: 'var(--sans)' }}>
+                    <XCircle size={14} /> Reject Loan
+                  </button>
+                )}
+              </div>
             </div>
           )}
 
-          {/* Loan summary stats */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-            <h3 className="text-sm font-semibold text-gray-700 mb-3">Summary</h3>
-            <div className="space-y-2">
-              {[
-                { label: 'Terms',        value: `${loan.numberOfRepayments} × ${loan.repaymentEvery} ${loan.repaymentFrequencyType?.value ?? ''}` },
-                { label: 'Approved On',  value: fmtDate(loan.approvedOnDate) },
-                { label: 'Disbursed',    value: fmtDate(loan.disbursementDate) },
-                { label: 'Maturity',     value: fmtDate(loan.expectedMaturityDate) },
-              ].map(({ label, value }) => (
-                <div key={label} className="flex justify-between text-sm py-1 border-b border-gray-50 last:border-0">
-                  <span className="text-gray-500">{label}</span>
-                  <span className="text-gray-900 font-medium">{value}</span>
-                </div>
-              ))}
-            </div>
+          {/* Summary stats */}
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-card)', padding: '16px' }}>
+            <h3 style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)', margin: '0 0 12px' }}>Summary</h3>
+            {[
+              { label: 'Terms', value: `${loan.numberOfRepayments} × ${loan.repaymentEvery} ${loan.repaymentFrequencyType?.value ?? ''}` },
+              { label: 'Approved on', value: fmtDate(loan.approvedOnDate) },
+              { label: 'Disbursed', value: fmtDate(loan.disbursementDate) },
+              { label: 'Maturity', value: fmtDate(loan.expectedMaturityDate) },
+            ].map(({ label, value }) => (
+              <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid var(--border-2)' }}>
+                <span style={{ fontSize: 12.5, color: 'var(--ink-3)' }}>{label}</span>
+                <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink)' }}>{value}</span>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -327,14 +295,14 @@ export default function LoanDetailPage({ params }: { params: Promise<{ loanId: s
 
 function Skeleton() {
   return (
-    <div className="max-w-4xl mx-auto animate-pulse space-y-5">
-      <div className="h-5 w-24 bg-gray-100 rounded" />
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        <div className="lg:col-span-2 space-y-5">
-          <div className="h-40 bg-white rounded-xl border border-gray-100" />
-          <div className="h-72 bg-white rounded-xl border border-gray-100" />
+    <div style={{ maxWidth: 960, margin: '0 auto' }}>
+      <div style={{ height: 14, width: 80, background: 'var(--border-2)', borderRadius: 3, marginBottom: 18 }} />
+      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 16 }}>
+        <div>
+          <div style={{ height: 160, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-card)', marginBottom: 12 }} />
+          <div style={{ height: 280, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-card)' }} />
         </div>
-        <div className="h-64 bg-white rounded-xl border border-gray-100" />
+        <div style={{ height: 240, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-card)' }} />
       </div>
     </div>
   );
