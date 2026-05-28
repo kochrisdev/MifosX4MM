@@ -1,16 +1,3 @@
-# IP-only deployment for Hetzner VPS (178.105.62.27)
-# No domain / no Nginx — services are accessed directly by port.
-# Usage:
-#   1. Copy .env.ip to .env on the server (fill in KBZ Pay values first)
-#   2. docker compose -f docker-compose.ip.yml build
-#   3. docker compose -f docker-compose.ip.yml up -d
-#
-# Public ports:
-#   http://178.105.62.27:3000  — Web portal
-#   http://178.105.62.27:3001  — API gateway
-#   http://178.105.62.27:3003  — Mobile Money (KBZ Pay webhooks)
-#   http://178.105.62.27:8180  — Keycloak admin / auth
-
 # ─── Volumes ──────────────────────────────────────────────────────────────────
 volumes:
   postgres_data:
@@ -27,15 +14,14 @@ services:
   # ── PostgreSQL ───────────────────────────────────────────────────────────────
   postgres:
     image: postgres:15-alpine
-    restart: unless-stopped
     environment:
       POSTGRES_USER: mifos
       POSTGRES_PASSWORD: 171210bfbcbadfb89cd55ca50d4d084b69a5782b4bb204ebdfae86b218d7f305
       POSTGRES_DB: fineract_default
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      # Creates the `keycloak` and `mifostenant_default` databases on first boot
       - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
-    # No public port — only reachable inside mifos_net
     networks: [mifos_net]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U mifos"]
@@ -46,7 +32,6 @@ services:
   # ── MySQL (Fineract's native database) ────────────────────────────────────────
   mysql:
     image: mysql:8.0
-    restart: unless-stopped
     command: --default-authentication-plugin=mysql_native_password
     environment:
       MYSQL_ROOT_PASSWORD: d5b9f6f6eb071373fc6af60318cf62532d8dc5c6a3ccb0f29d3af7ee22ee9660
@@ -54,7 +39,6 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
       - ./infra/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
-    # No public port — only reachable inside mifos_net
     networks: [mifos_net]
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pd5b9f6f6eb071373fc6af60318cf62532d8dc5c6a3ccb0f29d3af7ee22ee9660"]
@@ -65,7 +49,6 @@ services:
   # ── Apache Fineract ───────────────────────────────────────────────────────────
   fineract:
     image: apache/fineract:latest
-    restart: unless-stopped
     environment:
       FINERACT_DEFAULT_TENANTDB_HOSTNAME: mysql
       FINERACT_DEFAULT_TENANTDB_PORT: 3306
@@ -78,7 +61,8 @@ services:
       FINERACT_TENANTS_MASTER_JDBC_URL: jdbc:mariadb://mysql:3306/fineract_tenants
       FINERACT_SERVER_SSL_ENABLED: "false"
       FINERACT_SERVER_PORT: 8080
-    # No public port — only called internally by the API gateway
+    ports:
+      - "8080:8080"
     depends_on:
       mysql:
         condition: service_healthy
@@ -87,7 +71,7 @@ services:
   # ── Keycloak ─────────────────────────────────────────────────────────────────
   keycloak:
     image: quay.io/keycloak/keycloak:24.0
-    restart: unless-stopped
+    # --import-realm auto-imports JSON files placed in /opt/keycloak/data/import/
     command: start-dev --import-realm
     environment:
       KC_DB: postgres
@@ -96,16 +80,10 @@ services:
       KC_DB_PASSWORD: 171210bfbcbadfb89cd55ca50d4d084b69a5782b4bb204ebdfae86b218d7f305
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
-      # Use the full public URL so Keycloak sets the correct issuer in JWT tokens
-      KC_HOSTNAME_URL: http://178.105.62.27:8180
-      KC_HTTP_ENABLED: "true"
-      KC_HOSTNAME_STRICT: "false"
-      # No proxy in front — remove the edge proxy setting
     volumes:
-      - keycloak_data:/opt/keycloak/data
       - ./infra/keycloak/realm-mifos.json:/opt/keycloak/data/import/realm-mifos.json:ro
     ports:
-      - "8180:8080"
+      - "127.0.0.1:8180:8080"
     depends_on:
       postgres:
         condition: service_healthy
@@ -118,17 +96,15 @@ services:
       dockerfile: infra/docker/Dockerfile.node
       args:
         SERVICE_PATH: apps/api
-    restart: unless-stopped
     env_file: .env
     environment:
       FINERACT_URL: http://fineract:8080/fineract-provider/api/v1
-      # Must match the public Keycloak URL so JWT issuer validation passes
-      KEYCLOAK_URL: http://178.105.62.27:8180
+      KEYCLOAK_URL: http://keycloak:8080
       MOBILE_MONEY_SVC_URL: http://mobile-money:3003
       KYC_SVC_URL: http://kyc:3004
       REPORTING_SVC_URL: http://reporting:3005
     ports:
-      - "3001:3001"
+      - "127.0.0.1:3001:3001"
     depends_on: [fineract, keycloak]
     networks: [mifos_net]
 
@@ -138,11 +114,10 @@ services:
       context: .
       dockerfile: infra/docker/Dockerfile.web
       args:
-        NEXT_PUBLIC_API_URL: http://178.105.62.27:3001
-    restart: unless-stopped
+        NEXT_PUBLIC_API_URL: https://api.mifosx.com
     env_file: .env
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     depends_on: [api]
     networks: [mifos_net]
 
@@ -153,10 +128,9 @@ services:
       dockerfile: infra/docker/Dockerfile.node
       args:
         SERVICE_PATH: services/mobile-money
-    restart: unless-stopped
     env_file: .env
     ports:
-      - "3003:3003"
+      - "127.0.0.1:3003:3003"
     networks: [mifos_net]
 
   # ── KYC Service ───────────────────────────────────────────────────────────────
@@ -166,9 +140,7 @@ services:
       dockerfile: infra/docker/Dockerfile.node
       args:
         SERVICE_PATH: services/kyc
-    restart: unless-stopped
     env_file: .env
-    # No public port — only called internally by the API gateway
     networks: [mifos_net]
 
   # ── Reporting Service ─────────────────────────────────────────────────────────
@@ -176,12 +148,10 @@ services:
     build:
       context: services/reporting
       dockerfile: ../../infra/docker/Dockerfile.python
-    restart: unless-stopped
     env_file: .env
     environment:
       REPORTING_DB_URL: postgresql://mifos:171210bfbcbadfb89cd55ca50d4d084b69a5782b4bb204ebdfae86b218d7f305@postgres:5432/fineract_default
       KYC_SVC_URL: http://kyc:3004
-    # No public port — only called internally by the API gateway
     depends_on:
       postgres:
         condition: service_healthy

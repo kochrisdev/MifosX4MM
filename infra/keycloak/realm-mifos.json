@@ -1,7 +1,7 @@
 {
   "realm": "mifos",
   "enabled": true,
-  "sslRequired": "external",
+  "sslRequired": "none",
   "registrationAllowed": false,
   "loginWithEmailAllowed": true,
   "duplicateEmailsAllowed": false,
@@ -17,7 +17,7 @@
       "name": "Mifos API Gateway",
       "enabled": true,
       "clientAuthenticatorType": "client-secret",
-      "secret": "changeme-api-secret",
+      "secret": "5a7d4ac61a5fd6ab4ec7206e7c4b094cd24a2b49c62b1c81390768ccf1432259",
       "bearerOnly": false,
       "publicClient": false,
       "serviceAccountsEnabled": true,
@@ -37,8 +37,8 @@
       "implicitFlowEnabled": false,
       "serviceAccountsEnabled": false,
       "protocol": "openid-connect",
-      "redirectUris": ["http://localhost:3000/*", "https://*.oqtiva.ai/*"],
-      "webOrigins": ["http://localhost:3000", "https://*.oqtiva.ai"],
+      "redirectUris": ["https://app.mifosx.com/*"],
+      "webOrigins": ["https://app.mifosx.com"],
       "defaultClientScopes": ["web-origins", "profile", "roles", "email"]
     },
     {
