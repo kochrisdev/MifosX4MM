@@ -1,0 +1,763 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Mifos X — Design System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="design-system/tokens.css" />
+<link rel="stylesheet" href="design-system/components.css" />
+<style>
+  /* ===== Page chrome (only used here, not part of the system) ===== */
+  .ds-app { display: grid; grid-template-columns: 240px minmax(0, 1fr); min-height: 100vh; }
+  .ds-main { min-width: 0; }
+
+  .ds-side { padding: 24px 16px; }
+  .ds-side .ds-brand { display:flex; align-items:center; gap:10px; padding: 0 4px 18px; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
+  .ds-side .ds-brand .m { width:32px; height:32px; border-radius:7px; background:var(--teal); color:#fff; display:grid; place-items:center; font-weight:700; font-size:14px; }
+  .ds-side .ds-brand .t { line-height:1.2; }
+  .ds-side .ds-brand .n { font-size:14px; font-weight:600; color:var(--ink); }
+  .ds-side .ds-brand .s { font-size:11.5px; color:var(--ink-3); font-weight:500; }
+  .ds-side .toc-cap { font-size:10.5px; color:var(--ink-3); font-weight:600; text-transform:uppercase; letter-spacing:0.06em; padding: 8px 10px 6px; }
+  .ds-side a.toc { display:flex; align-items:center; gap:10px; padding:7px 10px; border-radius:6px; color:var(--ink-2); font-size:13.5px; font-weight:500; }
+  .ds-side a.toc:hover { background:var(--surface-2); color:var(--ink); }
+  .ds-side a.toc.active { background:var(--teal-50); color:var(--teal); font-weight:600; }
+  .ds-side a.toc .num { font-family:var(--mono); font-size:10.5px; color:var(--ink-3); width:18px; }
+  .ds-side a.toc.active .num { color:var(--teal); }
+
+  .ds-main { padding: 32px 40px 64px; max-width: 1180px; }
+  .ds-page-head { padding-bottom: 22px; border-bottom: 1px solid var(--border); margin-bottom: 32px; }
+  .ds-page-head .eyebrow { font-size:11px; color:var(--ink-3); font-weight:600; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:8px; }
+  .ds-page-head h1 { font-size:32px; font-weight:600; letter-spacing:-0.02em; color:var(--ink); }
+  .ds-page-head p { margin-top:8px; font-size:14px; color:var(--ink-2); max-width:640px; }
+  .ds-page-head .files { display:flex; gap:8px; margin-top:14px; flex-wrap:wrap; }
+  .ds-page-head .files .f { display:inline-flex; align-items:center; gap:8px; padding:4px 9px; border:1px solid var(--border); border-radius:5px; background:var(--surface); font-family:var(--mono); font-size:11.5px; color:var(--ink-2); }
+  .ds-page-head .files .f svg { width:12px; height:12px; stroke-width:2; color:var(--ink-3); }
+  .ds-page-head .files .f b { color:var(--ink); font-weight:600; }
+
+  /* Section */
+  .ds-section { margin-bottom: 56px; }
+  .ds-section > header { display:flex; align-items:baseline; justify-content:space-between; gap:14px; margin-bottom:18px; padding-bottom:10px; border-bottom: 1px solid var(--border-2); }
+  .ds-section > header h2 { font-size:20px; font-weight:600; letter-spacing:-0.01em; color:var(--ink); }
+  .ds-section > header .sub { font-size:12.5px; color:var(--ink-3); }
+  .ds-section > header .num { font-family:var(--mono); font-size:11px; color:var(--ink-3); }
+
+  /* Subhead inside section */
+  .ds-sub-h { display:flex; align-items:baseline; justify-content:space-between; margin: 28px 0 12px; }
+  .ds-sub-h h3 { font-size:13px; font-weight:600; color:var(--ink); text-transform:uppercase; letter-spacing:0.06em; }
+  .ds-sub-h .meta { font-size:12px; color:var(--ink-3); }
+
+  /* Color swatches */
+  .swatch-grid { display:grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap:12px; }
+  .swatch { background:var(--surface); border:1px solid var(--border); border-radius:8px; overflow:hidden; }
+  .swatch .chip { height:74px; display:flex; align-items:flex-end; padding:10px 12px; }
+  .swatch .chip .name { font-size:11.5px; font-weight:600; color:rgba(255,255,255,0.92); }
+  .swatch .chip.light .name { color:var(--ink); }
+  .swatch .meta { padding:10px 12px; display:flex; flex-direction:column; gap:2px; border-top:1px solid var(--border-2); }
+  .swatch .meta .label { font-size:12.5px; font-weight:600; color:var(--ink); }
+  .swatch .meta .role { font-size:11.5px; color:var(--ink-3); }
+  .swatch .meta .hex { font-family:var(--mono); font-size:11.5px; color:var(--ink-2); margin-top:2px; }
+  .swatch .meta .hex .token { color:var(--ink-3); margin-right:6px; }
+
+  /* Type scale rows */
+  .type-table { display:flex; flex-direction:column; border:1px solid var(--border); border-radius:8px; background:var(--surface); overflow:hidden; }
+  .type-row { display:grid; grid-template-columns: 1fr 220px 80px; align-items:baseline; gap:14px; padding:16px 20px; border-bottom:1px solid var(--border-2); }
+  .type-row:last-child { border-bottom:none; }
+  .type-row .sample { color:var(--ink); }
+  .type-row .meta { font-size:12px; color:var(--ink-3); font-family:var(--mono); display:flex; flex-direction:column; gap:2px; }
+  .type-row .meta b { color:var(--ink-2); font-weight:600; }
+  .type-row .use { font-size:11.5px; color:var(--ink-3); }
+
+  /* Spec table */
+  .spec { width:100%; border-collapse:collapse; background:var(--surface); border:1px solid var(--border); border-radius:8px; overflow:hidden; }
+  .spec th, .spec td { text-align:left; padding:9px 14px; font-size:12.5px; border-bottom:1px solid var(--border-2); }
+  .spec th { background:var(--surface-2); font-weight:600; color:var(--ink-2); font-size:11px; text-transform:uppercase; letter-spacing:0.06em; }
+  .spec tr:last-child td { border-bottom:none; }
+  .spec td.k { font-family:var(--mono); color:var(--ink); font-weight:500; white-space:nowrap; }
+  .spec td.v { font-family:var(--mono); color:var(--ink-2); }
+  .spec td.n { color:var(--ink-3); }
+
+  /* Example slot */
+  .ex { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:20px; display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin-bottom:14px; }
+  .ex.dark-context { background:#FAF8F3; }
+  .ex.bare { background:transparent; border:none; padding:0; }
+
+  /* Two-col layout for some sections */
+  .two-col { display:grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap:14px; }
+  @media (max-width: 1000px) { .two-col { grid-template-columns: minmax(0, 1fr); } }
+  @media (max-width: 1000px) { .swatch-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 1100px) {
+    .ds-app { grid-template-columns: 64px minmax(0, 1fr); }
+    .ds-side .ds-brand .t,
+    .ds-side .toc-cap,
+    .ds-side a.toc span { display: none; }
+    .ds-side a.toc { justify-content: center; padding: 8px 6px; }
+    .ds-side a.toc .num { display: inline; width: auto; text-align: center; }
+    .ds-main { padding: 24px 24px 56px; }
+    .type-row { grid-template-columns: minmax(0, 1fr) minmax(0, 180px); }
+    .type-row .use { display: none; }
+  }
+  @media (max-width: 680px) {
+    .swatch-grid { grid-template-columns: minmax(0, 1fr); }
+    .type-row { grid-template-columns: minmax(0, 1fr); }
+    .type-row .meta { font-size: 11px; }
+  }
+
+  /* Mini sidebar preview */
+  .mini-sidebar {
+    background: var(--surface); border:1px solid var(--border); border-radius:8px;
+    width:240px; padding:14px 12px; overflow:hidden;
+  }
+  .mini-sidebar .sidebar-cap { padding:8px 10px 6px; }
+  .mini-sidebar .sidebar-brand { padding:8px; }
+  .mini-sidebar { position: sticky; }
+
+  /* KPI demo */
+  .kpi-demo-grid { display:grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap:12px; }
+  @media (max-width:1000px) { .kpi-demo-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+  /* tokens block */
+  .token-line { display:flex; align-items:center; gap:10px; padding:7px 10px; border-bottom:1px solid var(--border-2); font-size:12.5px; }
+  .token-line:last-child { border-bottom:none; }
+  .token-line .sw { width:18px; height:18px; border-radius:4px; border:1px solid var(--border); flex-shrink:0; }
+  .token-line .name { font-family:var(--mono); color:var(--ink); font-weight:500; min-width:140px; }
+  .token-line .hex { font-family:var(--mono); color:var(--ink-2); min-width:80px; }
+  .token-line .role { font-size:11.5px; color:var(--ink-3); }
+
+  /* Footer */
+  .ds-foot { margin-top:48px; padding-top:18px; border-top:1px solid var(--border); display:flex; justify-content:space-between; font-size:12px; color:var(--ink-3); }
+</style>
+</head>
+<body>
+<div class="ds-app">
+
+  <!-- ===== TOC ===== -->
+  <aside class="sidebar ds-side">
+    <div class="ds-brand">
+      <div class="m">M</div>
+      <div class="t">
+        <div class="n">Mifos X</div>
+        <div class="s">Design System</div>
+      </div>
+    </div>
+
+    <div class="toc-cap">Contents</div>
+    <nav>
+      <a href="#foundations" class="toc active"><span class="num">01</span><span>Foundations</span></a>
+      <a href="#colors" class="toc"><span class="num">02</span><span>Colors</span></a>
+      <a href="#typography" class="toc"><span class="num">03</span><span>Typography</span></a>
+      <a href="#cards" class="toc"><span class="num">04</span><span>Cards</span></a>
+      <a href="#buttons" class="toc"><span class="num">05</span><span>Buttons</span></a>
+      <a href="#badges" class="toc"><span class="num">06</span><span>Badges &amp; status</span></a>
+      <a href="#sidebar" class="toc"><span class="num">07</span><span>Sidebar</span></a>
+      <a href="#forms" class="toc"><span class="num">08</span><span>Forms &amp; nav</span></a>
+    </nav>
+
+    <div class="toc-cap" style="margin-top:14px">Files</div>
+    <nav>
+      <a href="design-system/tokens.css" class="toc"><span class="num">·</span><span>tokens.css</span></a>
+      <a href="design-system/components.css" class="toc"><span class="num">·</span><span>components.css</span></a>
+      <a href="Dashboard.html" class="toc"><span class="num">·</span><span>Dashboard.html</span></a>
+    </nav>
+  </aside>
+
+  <main class="ds-main">
+
+    <!-- ===== Header ===== -->
+    <header class="ds-page-head" id="foundations">
+      <div class="eyebrow">Mifos X · MFI Portal</div>
+      <h1>Design System</h1>
+      <p>The visual language for all MifosX screens — colors, type, components, and patterns extracted from the Dashboard. Import the CSS files below into any new page and reach for the tokens and component classes documented here.</p>
+      <div class="files">
+        <span class="f">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+          <span class="token" style="color:var(--ink-3)">@import</span><b>design-system/tokens.css</b>
+        </span>
+        <span class="f">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+          <span class="token" style="color:var(--ink-3)">@import</span><b>design-system/components.css</b>
+        </span>
+      </div>
+    </header>
+
+    <!-- ===== Foundations / Principles ===== -->
+    <section class="ds-section">
+      <header>
+        <div>
+          <h2>Principles</h2>
+          <div class="sub">How the system thinks</div>
+        </div>
+        <span class="num">01</span>
+      </header>
+      <div class="two-col">
+        <div class="ex" style="flex-direction:column;align-items:flex-start;gap:6px">
+          <div class="cap" style="color:var(--ink-3)">Warm, calm, deliberate</div>
+          <p style="font-size:13.5px;color:var(--ink-2);margin:0">Warm off-white surface, navy text, teal accents. Amber reserved exclusively for risk and overdue states — no decorative use.</p>
+        </div>
+        <div class="ex" style="flex-direction:column;align-items:flex-start;gap:6px">
+          <div class="cap" style="color:var(--ink-3)">Hairlines, not shadows</div>
+          <p style="font-size:13.5px;color:var(--ink-2);margin:0">Cards and surfaces are separated by 1px borders (<code style="font-family:var(--mono);font-size:12px;color:var(--ink)">--border</code>) — never drop shadows or heavy elevation.</p>
+        </div>
+        <div class="ex" style="flex-direction:column;align-items:flex-start;gap:6px">
+          <div class="cap" style="color:var(--ink-3)">Tabular numerics</div>
+          <p style="font-size:13.5px;color:var(--ink-2);margin:0">All financial figures use <code style="font-family:var(--mono);font-size:12px;color:var(--ink)">font-variant-numeric: tabular-nums</code> so columns of numbers align.</p>
+        </div>
+        <div class="ex" style="flex-direction:column;align-items:flex-start;gap:6px">
+          <div class="cap" style="color:var(--ink-3)">Clear primary action</div>
+          <p style="font-size:13.5px;color:var(--ink-2);margin:0">One teal-filled primary CTA per screen, anchored in the page header. Everything else is outline or ghost.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ COLORS ============ -->
+    <section class="ds-section" id="colors">
+      <header>
+        <div>
+          <h2>Colors</h2>
+          <div class="sub">Tokenized palette — reference by CSS variable, not by hex</div>
+        </div>
+        <span class="num">02</span>
+      </header>
+
+      <!-- Surface -->
+      <div class="ds-sub-h"><h3>Surface &amp; borders</h3><span class="meta">Background, cards, dividers</span></div>
+      <div class="swatch-grid">
+        <div class="swatch">
+          <div class="chip light" style="background:#F7F5F0"><span class="name">Aa</span></div>
+          <div class="meta"><span class="label">Background</span><span class="role">Page background</span><span class="hex"><span class="token">--bg</span>#F7F5F0</span></div>
+        </div>
+        <div class="swatch">
+          <div class="chip light" style="background:#FFFFFF;border-bottom:1px solid var(--border)"><span class="name">Aa</span></div>
+          <div class="meta"><span class="label">Surface</span><span class="role">Cards, sidebar, topbar</span><span class="hex"><span class="token">--surface</span>#FFFFFF</span></div>
+        </div>
+        <div class="swatch">
+          <div class="chip light" style="background:#FAF8F3"><span class="name">Aa</span></div>
+          <div class="meta"><span class="label">Surface 2</span><span class="role">Hover, table headers</span><span class="hex"><span class="token">--surface-2</span>#FAF8F3</span></div>
+        </div>
+        <div class="swatch">
+          <div class="chip light" style="background:#F0EDE5"><span class="name">Aa</span></div>
+          <div class="meta"><span class="label">Surface 3</span><span class="role">Icon chips, deep neutral</span><span class="hex"><span class="token">--surface-3</span>#F0EDE5</span></div>
+        </div>
+      </div>
+
+      <div style="margin-top:16px">
+        <div class="card" style="padding:0">
+          <div class="token-line"><span class="sw" style="background:#E5E1D8"></span><span class="name">--border</span><span class="hex">#E5E1D8</span><span class="role">Default hairline (1px)</span></div>
+          <div class="token-line"><span class="sw" style="background:#EFEBE2"></span><span class="name">--border-2</span><span class="hex">#EFEBE2</span><span class="role">Softer divider inside cards</span></div>
+          <div class="token-line"><span class="sw" style="background:#D7D1C3"></span><span class="name">--border-strong</span><span class="hex">#D7D1C3</span><span class="role">Button border on hover</span></div>
+        </div>
+      </div>
+
+      <!-- Ink -->
+      <div class="ds-sub-h"><h3>Ink — text colors</h3><span class="meta">Hierarchical text scale</span></div>
+      <div class="swatch-grid">
+        <div class="swatch">
+          <div class="chip" style="background:#1A1A2E"><span class="name">Aa</span></div>
+          <div class="meta"><span class="label">Ink</span><span class="role">Primary text, headings, KPI values</span><span class="hex"><span class="token">--ink</span>#1A1A2E</span></div>
+        </div>
+        <div class="swatch">
+          <div class="chip" style="background:#4F4F62"><span class="name">Aa</span></div>
+          <div class="meta"><span class="label">Ink 2</span><span class="role">Secondary text, labels</span><span class="hex"><span class="token">--ink-2</span>#4F4F62</span></div>
+        </div>
+        <div class="swatch">
+          <div class="chip" style="background:#7C7B8A"><span class="name">Aa</span></div>
+          <div class="meta"><span class="label">Ink 3</span><span class="role">Muted, captions, placeholders</span><span class="hex"><span class="token">--ink-3</span>#7C7B8A</span></div>
+        </div>
+        <div class="swatch">
+          <div class="chip" style="background:#A8A7B4"><span class="name">Aa</span></div>
+          <div class="meta"><span class="label">Ink 4</span><span class="role">Disabled, decorative</span><span class="hex"><span class="token">--ink-4</span>#A8A7B4</span></div>
+        </div>
+      </div>
+
+      <!-- Brand teal -->
+      <div class="ds-sub-h"><h3>Brand — Teal</h3><span class="meta">Primary accent, CTAs, active state</span></div>
+      <div class="swatch-grid">
+        <div class="swatch">
+          <div class="chip" style="background:#0D6B6B"><span class="name">Aa</span></div>
+          <div class="meta"><span class="label">Teal</span><span class="role">Primary CTA, active nav</span><span class="hex"><span class="token">--teal</span>#0D6B6B</span></div>
+        </div>
+        <div class="swatch">
+          <div class="chip" style="background:#0A5757"><span class="name">Aa</span></div>
+          <div class="meta"><span class="label">Teal 700</span><span class="role">Primary hover</span><span class="hex"><span class="token">--teal-700</span>#0A5757</span></div>
+        </div>
+        <div class="swatch">
+          <div class="chip light" style="background:#D0E4E4"><span class="name">Aa</span></div>
+          <div class="meta"><span class="label">Teal 100</span><span class="role">Subtle tint</span><span class="hex"><span class="token">--teal-100</span>#D0E4E4</span></div>
+        </div>
+        <div class="swatch">
+          <div class="chip light" style="background:#E6F0F0"><span class="name">Aa</span></div>
+          <div class="meta"><span class="label">Teal 50</span><span class="role">Active nav bg, soft pill</span><span class="hex"><span class="token">--teal-50</span>#E6F0F0</span></div>
+        </div>
+      </div>
+
+      <!-- Status -->
+      <div class="ds-sub-h"><h3>Status — semantic</h3><span class="meta">Use sparingly and purposefully</span></div>
+      <div class="swatch-grid">
+        <div class="swatch">
+          <div class="chip" style="background:#D4840A"><span class="name">Aa</span></div>
+          <div class="meta"><span class="label">Amber</span><span class="role"><strong>Risk &amp; overdue only</strong></span><span class="hex"><span class="token">--amber</span>#D4840A</span></div>
+        </div>
+        <div class="swatch">
+          <div class="chip light" style="background:#FBF1DE"><span class="name">Aa</span></div>
+          <div class="meta"><span class="label">Amber 50</span><span class="role">Warning badge bg</span><span class="hex"><span class="token">--amber-50</span>#FBF1DE</span></div>
+        </div>
+        <div class="swatch">
+          <div class="chip" style="background:#2F8F5F"><span class="name">Aa</span></div>
+          <div class="meta"><span class="label">Green</span><span class="role">Healthy, live, on-track</span><span class="hex"><span class="token">--green</span>#2F8F5F</span></div>
+        </div>
+        <div class="swatch">
+          <div class="chip light" style="background:#E6F2EC"><span class="name">Aa</span></div>
+          <div class="meta"><span class="label">Green 50</span><span class="role">Success badge bg</span><span class="hex"><span class="token">--green-50</span>#E6F2EC</span></div>
+        </div>
+        <div class="swatch">
+          <div class="chip" style="background:#B5443B"><span class="name">Aa</span></div>
+          <div class="meta"><span class="label">Red</span><span class="role">Error, destructive</span><span class="hex"><span class="token">--red</span>#B5443B</span></div>
+        </div>
+        <div class="swatch">
+          <div class="chip light" style="background:#F7E6E4"><span class="name">Aa</span></div>
+          <div class="meta"><span class="label">Red 50</span><span class="role">Error badge bg</span><span class="hex"><span class="token">--red-50</span>#F7E6E4</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ TYPOGRAPHY ============ -->
+    <section class="ds-section" id="typography">
+      <header>
+        <div>
+          <h2>Typography</h2>
+          <div class="sub">Inter for UI, JetBrains Mono for tabular numerics &amp; system tags</div>
+        </div>
+        <span class="num">03</span>
+      </header>
+
+      <div class="ds-sub-h"><h3>Font families</h3></div>
+      <div class="two-col" style="margin-bottom:18px">
+        <div class="ex" style="flex-direction:column;align-items:flex-start;gap:6px">
+          <div class="cap" style="color:var(--ink-3)">UI · Sans</div>
+          <div style="font-family:var(--sans);font-size:32px;font-weight:600;letter-spacing:-0.02em;color:var(--ink)">Inter 400 500 600 700</div>
+          <div style="font-family:var(--mono);font-size:11.5px;color:var(--ink-3)">--sans · Google Fonts · weights 400, 500, 600, 700</div>
+        </div>
+        <div class="ex" style="flex-direction:column;align-items:flex-start;gap:6px">
+          <div class="cap" style="color:var(--ink-3)">Numerics · Mono</div>
+          <div style="font-family:var(--mono);font-size:30px;font-weight:500;color:var(--ink);font-variant-numeric:tabular-nums">0123456789</div>
+          <div style="font-family:var(--mono);font-size:11.5px;color:var(--ink-3)">--mono · JetBrains Mono · 400, 500, 600</div>
+        </div>
+      </div>
+
+      <div class="ds-sub-h"><h3>Scale</h3><span class="meta">Size · weight · letter-spacing</span></div>
+      <div class="type-table">
+
+        <div class="type-row">
+          <div class="sample" style="font-size:24px;font-weight:600;letter-spacing:-0.015em">Dashboard</div>
+          <div class="meta"><span><b>24px</b> / 600 / -0.015em</span><span>Inter · --t-h1</span></div>
+          <div class="use">Page title</div>
+        </div>
+
+        <div class="type-row">
+          <div class="sample" style="font-size:20px;font-weight:600;letter-spacing:-0.01em">Section heading</div>
+          <div class="meta"><span><b>20px</b> / 600 / -0.01em</span><span>Inter</span></div>
+          <div class="use">Major section header</div>
+        </div>
+
+        <div class="type-row">
+          <div class="sample" style="font-size:14px;font-weight:600;letter-spacing:-0.005em">Portfolio Overview</div>
+          <div class="meta"><span><b>14px</b> / 600 / -0.005em</span><span>Inter · --t-h2</span></div>
+          <div class="use">Card title</div>
+        </div>
+
+        <div class="type-row">
+          <div class="sample" style="font-size:28px;font-weight:600;letter-spacing:-0.02em;font-variant-numeric:tabular-nums">0<span style="font-size:16px;color:var(--ink-3);font-weight:500">K</span></div>
+          <div class="meta"><span><b>28px</b> / 600 / -0.02em</span><span>Inter · tabular-nums · --t-kpi</span></div>
+          <div class="use">KPI value</div>
+        </div>
+
+        <div class="type-row">
+          <div class="sample" style="font-size:14px;font-weight:400">Body — Recent disbursements, repayments, and approvals will appear here.</div>
+          <div class="meta"><span><b>14px</b> / 400 / 0</span><span>Inter · --t-body</span></div>
+          <div class="use">Body text</div>
+        </div>
+
+        <div class="type-row">
+          <div class="sample" style="font-size:13px;font-weight:500;color:var(--ink-2)">Navigation item</div>
+          <div class="meta"><span><b>13px</b> / 500 / 0</span><span>Inter · --t-body-sm</span></div>
+          <div class="use">Buttons, nav, tabs</div>
+        </div>
+
+        <div class="type-row">
+          <div class="sample" style="font-size:12.5px;font-weight:500;color:var(--ink-2)">Active Clients · label</div>
+          <div class="meta"><span><b>12.5px</b> / 500 / 0</span><span>Inter · --t-meta</span></div>
+          <div class="use">KPI labels, meta, crumbs</div>
+        </div>
+
+        <div class="type-row">
+          <div class="sample" style="font-size:11.5px;font-weight:600;color:var(--green);background:var(--green-50);padding:2px 8px;border-radius:999px;display:inline-block">Approved</div>
+          <div class="meta"><span><b>11.5px</b> / 600 / 0</span><span>Inter · --t-micro</span></div>
+          <div class="use">Badges, deltas, foot meta</div>
+        </div>
+
+        <div class="type-row">
+          <div class="sample" style="font-size:10.5px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.06em">Workspace</div>
+          <div class="meta"><span><b>10.5px</b> / 600 / 0.06em</span><span>Inter · UPPER · --t-cap</span></div>
+          <div class="use">Section captions</div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============ CARDS ============ -->
+    <section class="ds-section" id="cards">
+      <header>
+        <div>
+          <h2>Cards</h2>
+          <div class="sub">Surfaces for grouped content</div>
+        </div>
+        <span class="num">04</span>
+      </header>
+
+      <div class="ds-sub-h"><h3>KPI card</h3><span class="meta">Value-forward, ~118px min-height</span></div>
+      <div class="kpi-demo-grid">
+        <div class="kpi">
+          <div class="kpi-head">
+            <span class="kpi-label">Active Clients</span>
+          </div>
+          <div class="kpi-value">128</div>
+          <div class="kpi-foot">
+            <span class="delta up">+12%</span>
+            <span>vs. previous 30d</span>
+          </div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-head">
+            <span class="kpi-label">Active Loans</span>
+          </div>
+          <div class="kpi-value">87</div>
+          <div class="kpi-foot">
+            <span class="delta neutral">—</span>
+            <span>3 pending approval</span>
+          </div>
+        </div>
+        <div class="kpi risk">
+          <div class="kpi-head">
+            <span class="kpi-label">PAR30</span>
+          </div>
+          <div class="kpi-value">4.2<span class="unit">%</span></div>
+          <div class="kpi-foot">
+            <span class="delta warn">▲ 0.8%</span>
+            <span>vs. previous</span>
+          </div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-head">
+            <span class="kpi-label">Collections Today</span>
+          </div>
+          <div class="kpi-value">42<span class="unit">K</span></div>
+          <div class="kpi-foot">
+            <span class="delta up">94%</span>
+            <span>collection rate</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="ds-sub-h"><h3>Section card</h3><span class="meta">Header + body</span></div>
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-head">
+          <div class="ch-l">
+            <h2>Portfolio Overview</h2>
+            <div class="csub">Outstanding balance, overdue, and composition</div>
+          </div>
+          <div class="ch-r">
+            <a href="#" class="link-btn">View loan book
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </a>
+          </div>
+        </div>
+        <div class="card-body">
+          <p style="font-size:13.5px;color:var(--ink-2);margin:0">Body content sits inside <code style="font-family:var(--mono);font-size:12px;color:var(--ink)">.card-body</code> with 18px padding.</p>
+        </div>
+      </div>
+
+      <table class="spec" style="margin-top:18px">
+        <thead><tr><th>Property</th><th>Value</th><th>Token</th></tr></thead>
+        <tbody>
+          <tr><td class="k">background</td><td class="v">#FFFFFF</td><td class="n">--surface</td></tr>
+          <tr><td class="k">border</td><td class="v">1px solid #E5E1D8</td><td class="n">--border</td></tr>
+          <tr><td class="k">border-radius</td><td class="v">8px</td><td class="n">--r-card</td></tr>
+          <tr><td class="k">.card-head padding</td><td class="v">14px 18px 12px</td><td class="n">—</td></tr>
+          <tr><td class="k">.card-head divider</td><td class="v">1px solid #EFEBE2</td><td class="n">--border-2</td></tr>
+          <tr><td class="k">.card-body padding</td><td class="v">18px</td><td class="n">—</td></tr>
+          <tr><td class="k">title font</td><td class="v">14px / 600 / -0.005em</td><td class="n">--t-h2</td></tr>
+          <tr><td class="k">sub font</td><td class="v">12px / 400</td><td class="n">--ink-3</td></tr>
+          <tr><td class="k">shadow</td><td class="v">none — never</td><td class="n">principle</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ============ BUTTONS ============ -->
+    <section class="ds-section" id="buttons">
+      <header>
+        <div>
+          <h2>Buttons</h2>
+          <div class="sub">One primary CTA per screen; everything else outline or ghost</div>
+        </div>
+        <span class="num">05</span>
+      </header>
+
+      <div class="ds-sub-h"><h3>Variants</h3></div>
+      <div class="ex">
+        <button class="btn btn-primary">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          New Client
+        </button>
+        <button class="btn btn-outline">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Export
+        </button>
+        <button class="btn btn-secondary">Confirm</button>
+        <button class="btn btn-ghost">Cancel</button>
+        <button class="btn btn-danger">Delete</button>
+        <button class="btn btn-outline" disabled>Disabled</button>
+      </div>
+
+      <div class="ds-sub-h"><h3>Sizes</h3></div>
+      <div class="ex">
+        <button class="btn btn-primary btn-sm">Small · 28px</button>
+        <button class="btn btn-primary">Default · 32px</button>
+        <button class="btn btn-primary btn-lg">Large · 36px</button>
+      </div>
+
+      <div class="ds-sub-h"><h3>Icon &amp; link buttons</h3></div>
+      <div class="ex">
+        <button class="icon-btn" title="Notifications">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span class="has-dot"></span>
+        </button>
+        <button class="icon-btn" title="Refresh">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+        </button>
+        <a href="#" class="link-btn">View all
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </a>
+      </div>
+
+      <table class="spec" style="margin-top:18px">
+        <thead><tr><th>Variant</th><th>Background</th><th>Border</th><th>Text</th></tr></thead>
+        <tbody>
+          <tr><td class="k">.btn-primary</td><td class="v">--teal</td><td class="n">none</td><td class="v">#FFFFFF / 600</td></tr>
+          <tr><td class="k">.btn-secondary</td><td class="v">--ink</td><td class="n">none</td><td class="v">#FFFFFF / 600</td></tr>
+          <tr><td class="k">.btn-outline</td><td class="v">--surface</td><td class="v">1px --border</td><td class="v">--ink / 500</td></tr>
+          <tr><td class="k">.btn-ghost</td><td class="v">transparent</td><td class="n">none</td><td class="v">--ink-2 / 500</td></tr>
+          <tr><td class="k">.btn-danger</td><td class="v">--red</td><td class="n">none</td><td class="v">#FFFFFF / 600</td></tr>
+          <tr><td class="k">.icon-btn</td><td class="v">--surface</td><td class="v">1px --border</td><td class="v">--ink-2</td></tr>
+        </tbody>
+      </table>
+      <table class="spec" style="margin-top:12px">
+        <thead><tr><th>Property</th><th>Default</th><th>Small</th><th>Large</th></tr></thead>
+        <tbody>
+          <tr><td class="k">height</td><td class="v">32px</td><td class="v">28px</td><td class="v">36px</td></tr>
+          <tr><td class="k">padding</td><td class="v">7px 12px</td><td class="v">5px 10px</td><td class="v">8px 14px</td></tr>
+          <tr><td class="k">font-size</td><td class="v">13px / 500</td><td class="v">12.5px / 500</td><td class="v">14px / 500</td></tr>
+          <tr><td class="k">border-radius</td><td class="v">6px</td><td class="v">6px</td><td class="v">6px</td></tr>
+          <tr><td class="k">icon size</td><td class="v">14px</td><td class="v">12px</td><td class="v">15px</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ============ BADGES ============ -->
+    <section class="ds-section" id="badges">
+      <header>
+        <div>
+          <h2>Badges &amp; status</h2>
+          <div class="sub">Pills for state, indicators for trend</div>
+        </div>
+        <span class="num">06</span>
+      </header>
+
+      <div class="ds-sub-h"><h3>Badges</h3><span class="meta">Status labels</span></div>
+      <div class="ex">
+        <span class="badge ok">Approved</span>
+        <span class="badge warn">Overdue</span>
+        <span class="badge error">Failed</span>
+        <span class="badge draft">Draft</span>
+        <span class="badge info">In review</span>
+      </div>
+
+      <div class="ds-sub-h"><h3>Delta pills</h3><span class="meta">Trend indicators in KPIs</span></div>
+      <div class="ex">
+        <span class="delta neutral">—</span>
+        <span class="delta up">▲ 12%</span>
+        <span class="delta warn">▲ 0.8%</span>
+        <span class="delta down">▼ 3%</span>
+      </div>
+
+      <div class="ds-sub-h"><h3>Live &amp; system indicators</h3></div>
+      <div class="ex">
+        <span style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--green);font-weight:600"><span class="live-dot"></span>Live</span>
+        <span class="env-tag"><span class="ind"></span>Production</span>
+        <span class="env-tag" style="color:var(--amber);background:var(--amber-50);border-color:rgba(212,132,10,.22)"><span class="ind" style="background:var(--amber);box-shadow:0 0 0 2px rgba(212,132,10,.18)"></span>Staging</span>
+      </div>
+
+      <table class="spec" style="margin-top:18px">
+        <thead><tr><th>Class</th><th>Background</th><th>Text</th><th>Use</th></tr></thead>
+        <tbody>
+          <tr><td class="k">.badge.ok</td><td class="v">--green-50</td><td class="v">--green</td><td class="n">Approved, paid, healthy</td></tr>
+          <tr><td class="k">.badge.warn</td><td class="v">--amber-50</td><td class="v">--amber</td><td class="n">Overdue, at risk</td></tr>
+          <tr><td class="k">.badge.error</td><td class="v">--red-50</td><td class="v">--red</td><td class="n">Failed, rejected</td></tr>
+          <tr><td class="k">.badge.draft</td><td class="v">--border-2</td><td class="v">--ink-2</td><td class="n">Draft, neutral</td></tr>
+          <tr><td class="k">.badge.info</td><td class="v">--teal-50</td><td class="v">--teal</td><td class="n">In review, informational</td></tr>
+        </tbody>
+      </table>
+      <table class="spec" style="margin-top:12px">
+        <thead><tr><th>Property</th><th>Value</th></tr></thead>
+        <tbody>
+          <tr><td class="k">padding</td><td class="v">2px 8px</td></tr>
+          <tr><td class="k">border-radius</td><td class="v">999px (pill)</td></tr>
+          <tr><td class="k">font</td><td class="v">11.5px / 600 — --t-micro</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ============ SIDEBAR ============ -->
+    <section class="ds-section" id="sidebar">
+      <header>
+        <div>
+          <h2>Sidebar</h2>
+          <div class="sub">240px fixed left rail · light surface · hairline border</div>
+        </div>
+        <span class="num">07</span>
+      </header>
+
+      <div style="display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:start">
+
+        <!-- mini live sidebar -->
+        <div class="mini-sidebar">
+          <div class="sidebar-brand">
+            <div class="brand-mark">M</div>
+            <div>
+              <div class="brand-name">Mifos X</div>
+              <div class="brand-sub">MFI Portal</div>
+            </div>
+          </div>
+          <div class="sidebar-cap">Workspace</div>
+          <nav class="sidebar-nav">
+            <a href="#" class="active">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+              <span>Dashboard</span>
+            </a>
+            <a href="#">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+              <span>Clients</span>
+              <span class="nav-badge">128</span>
+            </a>
+            <a href="#">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M3 10h18"/><path d="M5 6l7-3 7 3"/></svg>
+              <span>Loans</span>
+              <span class="nav-badge">87</span>
+            </a>
+            <a href="#">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M2 10h20"/></svg>
+              <span>Collections</span>
+            </a>
+          </nav>
+        </div>
+
+        <table class="spec">
+          <thead><tr><th>Element</th><th>Property</th><th>Value</th></tr></thead>
+          <tbody>
+            <tr><td class="k">.sidebar</td><td class="v">width</td><td class="v">240px (--sidebar-w)</td></tr>
+            <tr><td class="k">.sidebar</td><td class="v">background</td><td class="v">--surface (#FFF)</td></tr>
+            <tr><td class="k">.sidebar</td><td class="v">border-right</td><td class="v">1px --border</td></tr>
+            <tr><td class="k">.sidebar</td><td class="v">padding</td><td class="v">14px 12px</td></tr>
+            <tr><td class="k">.brand-mark</td><td class="v">size / radius</td><td class="v">28px / 6px</td></tr>
+            <tr><td class="k">.brand-mark</td><td class="v">background</td><td class="v">--teal</td></tr>
+            <tr><td class="k">.brand-name</td><td class="v">font</td><td class="v">14px / 600</td></tr>
+            <tr><td class="k">.brand-sub</td><td class="v">font</td><td class="v">11.5px / 500 / --ink-3</td></tr>
+            <tr><td class="k">.sidebar-cap</td><td class="v">font</td><td class="v">10.5px / 600 / UPPER / 0.06em</td></tr>
+            <tr><td class="k">.sidebar-nav a</td><td class="v">padding</td><td class="v">7px 10px</td></tr>
+            <tr><td class="k">.sidebar-nav a</td><td class="v">font</td><td class="v">13.5px / 500</td></tr>
+            <tr><td class="k">.sidebar-nav a</td><td class="v">color</td><td class="v">--ink-2</td></tr>
+            <tr><td class="k">.sidebar-nav a:hover</td><td class="v">bg / text</td><td class="v">--surface-2 / --ink</td></tr>
+            <tr><td class="k">.sidebar-nav a.active</td><td class="v">bg / text</td><td class="v">--teal-50 / --teal / 600</td></tr>
+            <tr><td class="k">.sidebar-nav svg</td><td class="v">size</td><td class="v">15px · stroke 1.75</td></tr>
+            <tr><td class="k">.nav-badge</td><td class="v">font / radius</td><td class="v">mono 10.5px / 10px</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============ FORMS ============ -->
+    <section class="ds-section" id="forms">
+      <header>
+        <div>
+          <h2>Forms &amp; navigation</h2>
+          <div class="sub">Search, segmented controls, tabs</div>
+        </div>
+        <span class="num">08</span>
+      </header>
+
+      <div class="ds-sub-h"><h3>Search input</h3></div>
+      <div class="ex" style="display:block">
+        <div class="search" style="max-width:480px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" placeholder="Search clients, loans, transactions…" />
+          <span class="kbd">⌘K</span>
+        </div>
+      </div>
+
+      <div class="ds-sub-h"><h3>Segmented control</h3><span class="meta">For range/granularity switches</span></div>
+      <div class="ex">
+        <div class="seg" id="seg-demo">
+          <button>Today</button>
+          <button>7d</button>
+          <button class="active">30d</button>
+          <button>QTD</button>
+          <button>YTD</button>
+        </div>
+      </div>
+
+      <div class="ds-sub-h"><h3>Tabs</h3><span class="meta">Underline accent in --teal</span></div>
+      <div class="ex" style="display:block;padding:0;background:transparent;border:none">
+        <div class="tabs" id="tabs-demo" style="background:var(--surface);border:1px solid var(--border);border-bottom:1px solid var(--border);border-radius:8px 8px 0 0;padding:0 12px">
+          <button class="active">Overview</button>
+          <button>Performance</button>
+          <button>Activity <span class="count">3</span></button>
+          <button>Watchlist</button>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px;padding:18px;font-size:13px;color:var(--ink-3)">Tab panel content</div>
+      </div>
+
+    </section>
+
+    <div class="ds-foot">
+      <span>Mifos X · MFI Portal</span>
+      <span>Design system v1.0 · 29 May 2026</span>
+    </div>
+
+  </main>
+</div>
+
+<script>
+  // Scrollspy + segmented + tabs
+  document.querySelectorAll('.seg, .tabs').forEach(g=>{
+    g.addEventListener('click', e=>{
+      const b = e.target.closest('button');
+      if (!b || !g.contains(b)) return;
+      g.querySelectorAll('button').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');
+    });
+  });
+
+  const links = document.querySelectorAll('.ds-side a.toc[href^="#"]');
+  const sections = [...links].map(a => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+  function spy() {
+    const top = window.scrollY + 120;
+    let cur = sections[0];
+    for (const s of sections) { if (s.offsetTop <= top) cur = s; }
+    links.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + cur.id));
+  }
+  window.addEventListener('scroll', spy, { passive: true });
+  spy();
+</script>
+
+</body>
+</html>

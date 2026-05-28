@@ -1,0 +1,76 @@
+/* ============================================================
+   MifosX Design System — Tokens
+   Drop-in CSS variables for all pages. @import this first.
+   ============================================================ */
+
+:root {
+  /* -------- Surfaces & Borders -------- */
+  --bg:            #F7F5F0;  /* page background — warm off-white */
+  --surface:       #FFFFFF;  /* cards, sidebar, topbar */
+  --surface-2:     #FAF8F3;  /* hover, sub-surface, table headers */
+  --surface-3:     #F0EDE5;  /* deeper neutral, e.g. icon chips */
+
+  --border:        #E5E1D8;  /* hairline border (1px) */
+  --border-2:      #EFEBE2;  /* softer divider (1px) */
+  --border-strong: #D7D1C3;  /* button border on hover */
+
+  /* -------- Ink (text) -------- */
+  --ink:    #1A1A2E;  /* primary text, headings, KPI values */
+  --ink-2:  #4F4F62;  /* secondary text, labels */
+  --ink-3:  #7C7B8A;  /* muted, captions, placeholders */
+  --ink-4:  #A8A7B4;  /* disabled, decorative */
+
+  /* -------- Brand: Teal (primary) -------- */
+  --teal:      #0D6B6B;  /* primary CTA, active nav, accent */
+  --teal-700:  #0A5757;  /* primary hover */
+  --teal-100:  #D0E4E4;  /* subtle tint */
+  --teal-50:   #E6F0F0;  /* active nav bg, soft pill */
+
+  /* -------- Status / Semantic -------- */
+  --amber:    #D4840A;   /* risk, overdue, warnings ONLY */
+  --amber-50: #FBF1DE;
+  --green:    #2F8F5F;   /* healthy, on-track, live */
+  --green-50: #E6F2EC;
+  --red:      #B5443B;   /* error, destructive */
+  --red-50:   #F7E6E4;
+
+  /* -------- Type -------- */
+  --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+
+  /* Type scale (font-size / line-height / letter-spacing / weight) */
+  --t-h1:        24px;   /* page title (weight 600, ls -0.015em) */
+  --t-h2:        14px;   /* card / section title (600, -0.005em) */
+  --t-kpi:       28px;   /* KPI value (600, -0.02em, tabular-nums) */
+  --t-kpi-unit:  16px;   /* KPI unit (K, %) */
+  --t-body:      14px;
+  --t-body-sm:   13px;   /* nav, buttons */
+  --t-meta:      12.5px; /* labels, sub-text, crumbs */
+  --t-micro:     11.5px; /* badges, deltas, foot text */
+  --t-cap:       10.5px; /* uppercase nav captions */
+
+  /* -------- Radius -------- */
+  --r-card:    8px;
+  --r-btn:     6px;
+  --r-input:   6px;
+  --r-pill:    999px;
+  --r-chip:    4px;
+
+  /* -------- Spacing (use sparingly — most layouts use bespoke px) -------- */
+  --s-1:  4px;
+  --s-2:  8px;
+  --s-3:  12px;
+  --s-4:  16px;
+  --s-5:  20px;
+  --s-6:  24px;
+  --s-7:  32px;
+
+  /* -------- Layout -------- */
+  --sidebar-w:  240px;
+  --topbar-h:   52px;
+
+  /* -------- Motion -------- */
+  --ease:       cubic-bezier(.4, 0, .2, 1);
+  --dur-fast:   100ms;
+  --dur:        160ms;
+}
