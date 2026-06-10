@@ -80,7 +80,7 @@ async def overdue_accounts(
             c.mobile_no,
             l.currency_code                                                          AS currency,
             MIN(lrs.duedate)                                                         AS oldest_overdue_date,
-            (CURRENT_DATE - MIN(lrs.duedate))                                        AS days_overdue,
+            DATEDIFF(CURRENT_DATE, MIN(lrs.duedate))                                 AS days_overdue,
             SUM(
                 COALESCE(lrs.principal_amount,       0) - COALESCE(lrs.principal_completed_derived,       0)
                                                        - COALESCE(lrs.principal_writtenoff_derived,       0)
@@ -103,7 +103,7 @@ async def overdue_accounts(
           AND lrs.obligations_met_on_date IS NULL
           {branch_filter}
         GROUP BY l.id, l.account_no, c.display_name, c.mobile_no, l.currency_code
-        HAVING (CURRENT_DATE - MIN(lrs.duedate)) >= :days_overdue
+        HAVING DATEDIFF(CURRENT_DATE, MIN(lrs.duedate)) >= :days_overdue
            AND SUM(
                 COALESCE(lrs.principal_amount,       0) - COALESCE(lrs.principal_completed_derived,       0)
                                                        - COALESCE(lrs.principal_writtenoff_derived,       0)

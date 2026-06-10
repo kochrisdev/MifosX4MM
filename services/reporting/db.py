@@ -4,10 +4,15 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sess
 
 _raw_url = os.getenv(
     "REPORTING_DB_URL",
-    "postgresql://mifos:password@postgres:5432/fineract_default",
+    "mysql://root:password@mysql:3306/fineract_default",
 )
-# asyncpg driver requires the +asyncpg scheme
-ASYNC_URL = _raw_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+
+if _raw_url.startswith("mysql://"):
+    ASYNC_URL = _raw_url.replace("mysql://", "mysql+aiomysql://", 1)
+elif _raw_url.startswith("postgresql://"):
+    ASYNC_URL = _raw_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+else:
+    ASYNC_URL = _raw_url
 
 engine = create_async_engine(
     ASYNC_URL,

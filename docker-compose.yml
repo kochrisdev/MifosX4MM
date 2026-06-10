@@ -165,7 +165,7 @@ services:
       dockerfile: ../../infra/docker/Dockerfile.python
     env_file: .env
     environment:
-      REPORTING_DB_URL: postgresql://mifos:password@postgres:5432/fineract_default
+      REPORTING_DB_URL: mysql://root:password@mysql:3306/fineract_default
       KYC_SVC_URL: http://kyc:3004
     ports:
       - "3005:3005"
