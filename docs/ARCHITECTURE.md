@@ -287,3 +287,15 @@ graph LR
 ```
 
 All inter-service calls are on the `mifos_net` Docker bridge network in development. In production, replace with a service mesh or internal load balancer.
+
+---
+
+## Why these choices?
+
+| Decision | Rationale |
+|---|---|
+| **Apache Fineract** | Battle-tested open-source core banking engine used by MFIs in 40+ countries. Handles amortization schedules, interest accrual, GL accounting. Accessed only via REST — never forked — so Docker image upgrades are safe. |
+| **Keycloak (ROPC flow)** | Enterprise OIDC provider. ROPC is appropriate for a closed staff portal (no "Login with Google" needed). RS256 JWT lets every service verify tokens via the JWKS endpoint without a database round-trip per request. |
+| **Python for reporting** | Fineract REST does not expose PAR or time-series aggregations at the needed accuracy. Direct SQL via asyncpg gives real-time figures from `m_loan_repayment_schedule`. Isolated from the Turborepo TypeScript pipeline by design. |
+| **KBZ Pay direct API** | Myanmar's largest mobile wallet with deepest rural penetration. Direct merchant API (not via 2C2P or Dinger aggregator) avoids aggregator fees and provides direct access to webhooks and settlement reports. |
+| **Turborepo + pnpm workspaces** | All TypeScript services share `@mifos-x/shared-types`. Turborepo provides dependency-aware build ordering and parallel dev server startup with a single `pnpm dev` command. |

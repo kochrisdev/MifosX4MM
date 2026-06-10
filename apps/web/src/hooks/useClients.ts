@@ -17,8 +17,10 @@ export interface FineractClient {
 }
 
 interface ClientsPage {
-  totalFilteredRecords: number;
-  pageItems: FineractClient[];
+  total: number;
+  items: FineractClient[];
+  page: number;
+  pageSize: number;
 }
 
 export function useClients(search = '') {
@@ -31,8 +33,8 @@ export function useClients(search = '') {
       return data.data;
     },
     getNextPageParam: (last, allPages) => {
-      const loaded = allPages.reduce((sum, p) => sum + p.pageItems.length, 0);
-      return loaded < last.totalFilteredRecords ? loaded : undefined;
+      const loaded = allPages.reduce((sum, p) => sum + p.items.length, 0);
+      return loaded < last.total ? loaded : undefined;
     },
     initialPageParam: 0,
   });

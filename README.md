@@ -1,6 +1,6 @@
 # Mifos X for MM — Full-Stack Microfinance Platform
 
-A production-grade microfinance solution built for a mid-size Myanmar MFI on top of [Apache Fineract](https://fineract.apache.org/). The platform adds a modern frontend layer, KBZ Pay mobile money integration, a KYC abstraction service, and custom SQL-based reporting on top of Fineract's core banking engine.
+MifosX4MM helps loan officers and branch managers at a Myanmar microfinance institution manage their entire loan portfolio — from client registration and identity verification through to loan approval, disbursement, and repayment collection via KBZ Pay. It is built on [Apache Fineract](https://fineract.apache.org/) as the core banking engine, with a modern web portal for desk staff and a React Native app for field loan officers. See [docs/DOMAIN.md](docs/DOMAIN.md) for the business context and domain glossary.
 
 ---
 
@@ -204,7 +204,10 @@ To add a new provider: implement `KycProvider` in [`services/kyc/src/providers/`
 
 | Document | Contents |
 |---|---|
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Component diagrams, data flows, DB schema |
+| [docs/DOMAIN.md](docs/DOMAIN.md) | Business context, microfinance concepts, Myanmar context, glossary, user roles |
+| [docs/ONBOARDING.md](docs/ONBOARDING.md) | First-week guide: what to run, what to explore, how to trace the code |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Component diagrams, data flows, DB schema, tech decision rationale |
 | [docs/API.md](docs/API.md) | Full API reference for all services |
-| [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) | Local setup, workflows, common tasks |
+| [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) | Local setup, env vars, workflows, troubleshooting |
+| [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) | Feature development patterns, testing, known tech debt |
 | [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | VPS deployment with Docker, Nginx, and TLS |

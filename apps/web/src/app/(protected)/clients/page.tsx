@@ -39,8 +39,8 @@ export default function ClientsPage() {
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useClients(debouncedSearch);
 
-  const clients = data?.pages.flatMap((p) => p.pageItems) ?? [];
-  const total   = data?.pages[0]?.totalFilteredRecords ?? 0;
+  const clients = data?.pages.flatMap((p) => p.items) ?? [];
+  const total   = data?.pages[0]?.total ?? 0;
 
   return (
     <div className="max-w-6xl mx-auto space-y-5">

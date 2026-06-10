@@ -10,7 +10,6 @@ networks:
     driver: bridge
 
 services:
-
   # ── PostgreSQL ───────────────────────────────────────────────────────────────
   postgres:
     image: postgres:15-alpine
@@ -26,7 +25,7 @@ services:
       - "5432:5432"
     networks: [mifos_net]
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U mifos"]
+      test: ["CMD-SHELL", "pg_isready -U fineract_default"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -45,7 +44,17 @@ services:
       - "3306:3306"
     networks: [mifos_net]
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-ppassword"]
+      test:
+        [
+          "CMD",
+          "mysqladmin",
+          "ping",
+          "-h",
+          "localhost",
+          "-u",
+          "root",
+          "-ppassword",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -156,7 +165,7 @@ services:
       dockerfile: ../../infra/docker/Dockerfile.python
     env_file: .env
     environment:
-      REPORTING_DB_URL: postgresql://mifos:password@postgres:5432/fineract_default
+      REPORTING_DB_URL: mysql://root:password@mysql:3306/fineract_default
       KYC_SVC_URL: http://kyc:3004
     ports:
       - "3005:3005"

@@ -22,7 +22,7 @@ overdue_schedule AS (
     SELECT
         loan_id,
         MIN(duedate)                         AS oldest_overdue_date,
-        CURRENT_DATE - MIN(duedate)          AS days_in_arrears,
+        DATEDIFF(CURRENT_DATE, MIN(duedate)) AS days_in_arrears,
         SUM(
             COALESCE(principal_amount,                    0) - COALESCE(principal_completed_derived,       0)
                                                              - COALESCE(principal_writtenoff_derived,      0)
@@ -173,12 +173,15 @@ async def disbursements_over_time(
     end   = date.fromisoformat(to_date)   if to_date   else date.today()
     start = date.fromisoformat(from_date) if from_date else end - timedelta(days=365)
 
-    # DATE_TRUNC granularity mapping
-    trunc = {"day": "day", "week": "week", "month": "month"}[granularity]
+    trunc_expr = {
+        "day":   "DATE(transaction_date)",
+        "week":  "DATE(DATE_SUB(transaction_date, INTERVAL WEEKDAY(transaction_date) DAY))",
+        "month": "DATE_SUB(transaction_date, INTERVAL DAY(transaction_date)-1 DAY)",
+    }[granularity]
 
     sql = text(f"""
         SELECT
-            DATE_TRUNC('{trunc}', transaction_date)     AS period,
+            {trunc_expr}                                 AS period,
             COUNT(DISTINCT loan_id)                      AS loan_count,
             COALESCE(SUM(amount), 0)                     AS amount
         FROM m_loan_transaction
@@ -186,7 +189,7 @@ async def disbursements_over_time(
           AND is_reversed               = false
           AND manually_adjusted_or_reversed = false
           AND transaction_date BETWEEN :start AND :end
-        GROUP BY DATE_TRUNC('{trunc}', transaction_date)
+        GROUP BY {trunc_expr}
         ORDER BY period
     """)
 
