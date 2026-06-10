@@ -17,3 +17,4 @@ ios/
 .claude/settings.local.json
 .claude/settings.json
 CLAUDE.md
+/docs
