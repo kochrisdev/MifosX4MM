@@ -10,7 +10,6 @@ networks:
     driver: bridge
 
 services:
-
   # ── PostgreSQL ───────────────────────────────────────────────────────────────
   postgres:
     image: postgres:15-alpine
@@ -26,7 +25,7 @@ services:
       - "5432:5432"
     networks: [mifos_net]
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U mifos"]
+      test: ["CMD-SHELL", "pg_isready -U fineract_default"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -45,7 +44,17 @@ services:
       - "3306:3306"
     networks: [mifos_net]
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-ppassword"]
+      test:
+        [
+          "CMD",
+          "mysqladmin",
+          "ping",
+          "-h",
+          "localhost",
+          "-u",
+          "root",
+          "-ppassword",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5

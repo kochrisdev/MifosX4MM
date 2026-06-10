@@ -31,12 +31,6 @@ const fineract = axios.create({
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-function today(offsetDays = 0) {
-  const d = new Date();
-  d.setDate(d.getDate() + offsetDays);
-  return d.toLocaleDateString('en-GB').split('/').reverse().join(' '); // dd MMM yyyy → wait, need "dd MMMM yyyy"
-}
-
 function dateStr(offsetDays = 0): string {
   const d = new Date();
   d.setDate(d.getDate() + offsetDays);
@@ -54,16 +48,16 @@ function log(msg: string) {
 // ── Seed data ────────────────────────────────────────────────────────────────
 
 const CLIENTS = [
-  { firstname: 'Aung',    lastname: 'Kyaw',    mobile: '09251234567', gender: 1 },
-  { firstname: 'Moe',     lastname: 'Thu',     mobile: '09261234568', gender: 1 },
-  { firstname: 'Zaw',     lastname: 'Lin',     mobile: '09271234569', gender: 1 },
-  { firstname: 'Htun',    lastname: 'Naing',   mobile: '09281234570', gender: 1 },
-  { firstname: 'Nyi',     lastname: 'Nyi',     mobile: '09291234571', gender: 1 },
-  { firstname: 'Thidar',  lastname: 'Win',     mobile: '09211234572', gender: 2 },
-  { firstname: 'Aye',     lastname: 'Mya',     mobile: '09221234573', gender: 2 },
-  { firstname: 'Su',      lastname: 'Khin',    mobile: '09231234574', gender: 2 },
-  { firstname: 'Ma',      lastname: 'Lwin',    mobile: '09241234575', gender: 2 },
-  { firstname: 'Sandar',  lastname: 'Myint',   mobile: '09201234576', gender: 2 },
+  { firstname: 'Aung',    lastname: 'Kyaw',    mobile: '09251234567' },
+  { firstname: 'Moe',     lastname: 'Thu',     mobile: '09261234568' },
+  { firstname: 'Zaw',     lastname: 'Lin',     mobile: '09271234569' },
+  { firstname: 'Htun',    lastname: 'Naing',   mobile: '09281234570' },
+  { firstname: 'Nyi',     lastname: 'Nyi',     mobile: '09291234571' },
+  { firstname: 'Thidar',  lastname: 'Win',     mobile: '09211234572' },
+  { firstname: 'Aye',     lastname: 'Mya',     mobile: '09221234573' },
+  { firstname: 'Su',      lastname: 'Khin',    mobile: '09231234574' },
+  { firstname: 'Ma',      lastname: 'Lwin',    mobile: '09241234575' },
+  { firstname: 'Sandar',  lastname: 'Myint',   mobile: '09201234576' },
 ];
 
 // Loan amounts in MMK
@@ -90,7 +84,16 @@ async function seed() {
   const officeId: number = officeRes.data[0]?.id ?? 1;
   log(`   Using office ID: ${officeId}`);
 
-  // ── 2. Create loan product ────────────────────────────────────────────────
+  // ── 2. Enable MMK currency ────────────────────────────────────────────────
+  console.log('\n💱  Enabling MMK currency…');
+  try {
+    await fineract.put('/currencies', { currencies: ['MMK'] });
+    log('✅  MMK currency enabled');
+  } catch (err: any) {
+    log(`⚠️  Currency setup — ${err.response?.data?.defaultUserMessage ?? err.message}`);
+  }
+
+  // ── 3. Create loan product ────────────────────────────────────────────────
   console.log('\n📦  Creating loan product…');
   let productId: number;
   try {
@@ -119,6 +122,7 @@ async function seed() {
       isInterestRecalculationEnabled: false,
       daysInYearType: 365,
       daysInMonthType: 30,
+      locale: 'en',
     });
     productId = productRes.data.resourceId;
     log(`✅  Loan product created (ID: ${productId})`);
@@ -143,10 +147,10 @@ async function seed() {
     try {
       const res = await fineract.post('/clients', {
         officeId,
+        legalFormId: 1,
         firstname: c.firstname,
         lastname: c.lastname,
         mobileNo: c.mobile,
-        genderId: c.gender,
         active: true,
         activationDate: dateStr(-90),
         dateFormat: 'dd MMMM yyyy',
@@ -155,7 +159,8 @@ async function seed() {
       clientIds.push(res.data.resourceId);
       log(`✅  Client: ${c.firstname} ${c.lastname} (ID: ${res.data.resourceId})`);
     } catch (err: any) {
-      log(`⚠️  Client ${c.firstname} ${c.lastname} may already exist — ${err.response?.data?.defaultUserMessage ?? err.message}`);
+      const detail = err.response?.data?.errors?.map((e: any) => e.defaultUserMessage).join(', ') ?? err.response?.data?.defaultUserMessage ?? err.message;
+      log(`⚠️  Client ${c.firstname} ${c.lastname} — ${detail}`);
     }
   }
 
@@ -180,6 +185,7 @@ async function seed() {
       const submitRes = await fineract.post('/loans', {
         clientId,
         productId,
+        loanType: 'individual',
         principal: amount,
         loanTermFrequency: 12,
         loanTermFrequencyType: 2,
@@ -223,7 +229,8 @@ async function seed() {
 
       log(`✅  Loan disbursed (ID: ${loanId}) — ${(amount / 1000).toFixed(0)}K MMK`);
     } catch (err: any) {
-      log(`⚠️  Loan for client ${clientId}: ${err.response?.data?.defaultUserMessage ?? err.message}`);
+      const detail = err.response?.data?.errors?.map((e: any) => e.defaultUserMessage).join(', ') ?? err.response?.data?.defaultUserMessage ?? err.message;
+      log(`⚠️  Loan for client ${clientId}: ${detail}`);
     }
   }
 
