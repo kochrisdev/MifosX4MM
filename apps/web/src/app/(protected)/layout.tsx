@@ -5,9 +5,9 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
   return (
     <div className="flex h-screen overflow-hidden">
       <Sidebar />
-      <div className="ml-60 flex flex-col flex-1 overflow-hidden">
+      <div className="ml-56 flex flex-col flex-1 overflow-hidden">
         <TopBar />
-        <main className="flex-1 overflow-y-auto bg-gray-50 p-6">
+        <main className="flex-1 overflow-y-auto bg-[var(--page-bg)] p-6">
           {children}
         </main>
       </div>
