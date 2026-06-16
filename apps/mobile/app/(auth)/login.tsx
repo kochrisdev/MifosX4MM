@@ -7,8 +7,12 @@ import { useAuth } from '../../src/context/AuthContext';
 
 export default function LoginScreen() {
   const { login } = useAuth();
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState(
+    __DEV__ ? (process.env.EXPO_PUBLIC_DEV_USERNAME ?? '') : ''
+  );
+  const [password, setPassword] = useState(
+    __DEV__ ? (process.env.EXPO_PUBLIC_DEV_PASSWORD ?? '') : ''
+  );
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
