@@ -14,10 +14,14 @@ export async function loanRoutes(app: FastifyInstance, fineract: AxiosInstance) 
       };
       if (search) params['sqlSearch'] = `l.account_no like '%${search}%'`;
       const { data } = await fineract.get('/loans', { params });
+      const pageItems = (data.pageItems ?? []).map((loan: FineractLoanAccount) => ({
+        ...loan,
+        totalOutstanding: loan.summary?.totalOutstanding ?? 0,
+      }));
       return reply.send({
         success: true,
         data: {
-          pageItems: data.pageItems ?? [],
+          pageItems,
           totalFilteredRecords: data.totalFilteredRecords ?? 0,
         },
       });

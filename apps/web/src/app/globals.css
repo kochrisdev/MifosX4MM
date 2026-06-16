@@ -1,3 +1,20 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --sidebar:      #1b2030;   /* deep blue-black */
+  --sidebar-text: #8b99ab;   /* muted steel */
+  --sidebar-hover: #242d42;
+  --gold:         #c49a38;   /* burnished gold — single accent */
+  --gold-light:   #f0d080;   /* gold text on dark backgrounds */
+  --page-bg:      #f5f3ee;   /* warm ivory */
+  --card:         #ffffff;
+  --text-1:       #1b2030;
+  --text-2:       #6b7280;
+  --text-3:       #9ca3af;
+  --border:       #e5e2db;   /* warm divider */
+  --danger:       #c0392b;
+  --success:      #1a7a4a;
+  --warning:      #b8850a;
+}

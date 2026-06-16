@@ -4,7 +4,8 @@ const MMK = new Intl.NumberFormat('my-MM', {
   maximumFractionDigits: 0,
 });
 
-export function formatMMK(amount: number): string {
+export function formatMMK(amount: number | null | undefined): string {
+  if (amount == null || isNaN(amount)) return 'K 0';
   return MMK.format(amount);
 }
 

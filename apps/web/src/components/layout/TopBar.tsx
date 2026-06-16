@@ -14,9 +14,7 @@ const TITLES: Record<string, string> = {
 };
 
 function getTitle(pathname: string) {
-  // Exact match first
   if (TITLES[pathname]) return TITLES[pathname];
-  // Prefix match
   const key = Object.keys(TITLES).find(
     (k) => k !== '/' && pathname.startsWith(k)
   );
@@ -28,13 +26,19 @@ export default function TopBar() {
   const title = getTitle(pathname);
 
   return (
-    <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6">
-      <h1 className="text-lg font-semibold text-gray-900">{title}</h1>
+    <header className="h-12 bg-white border-b border-[var(--border)] flex items-center justify-between px-6">
+      <h1 className="font-display font-semibold text-[var(--text-1)] text-sm">{title}</h1>
       <div className="flex items-center gap-3">
-        <button className="relative p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition">
-          <Bell size={18} />
+        <span className="text-xs text-[var(--text-2)] bg-[var(--page-bg)] border border-[var(--border)] px-2 py-1 rounded font-display">
+          HQ Branch
+        </span>
+        <button
+          className="text-[var(--text-2)] hover:text-[var(--text-1)] transition-colors"
+          aria-label="Notifications"
+        >
+          <Bell size={16} />
         </button>
-        <div className="w-8 h-8 rounded-full bg-primary-600 flex items-center justify-center text-white text-xs font-semibold">
+        <div className="w-7 h-7 rounded bg-[var(--sidebar)] text-white text-xs font-bold font-mono flex items-center justify-center">
           A
         </div>
       </div>

@@ -26,44 +26,84 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-primary-50">
-      <div className="bg-white rounded-2xl shadow-md w-full max-w-sm p-8">
-        <h1 className="text-2xl font-bold text-primary-900 mb-1">Mifos X</h1>
-        <p className="text-sm text-gray-500 mb-8">Staff Management Portal</p>
+    <div className="min-h-screen flex">
+      {/* Left dark panel */}
+      <div className="hidden lg:flex w-1/2 bg-[var(--sidebar)] flex-col items-center justify-center p-12 relative overflow-hidden">
+        {/* Logo */}
+        <div className="flex items-center gap-2">
+          <div className="w-6 h-6 bg-[var(--gold)] rounded-sm" />
+          <span className="font-display font-semibold text-2xl text-white">MifosX</span>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-              autoFocus
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-            />
-          </div>
+        {/* Tagline */}
+        <p className="font-sans text-[var(--gold-light)] text-sm mt-4 leading-relaxed max-w-xs text-center">
+          Empowering microfinance institutions across Myanmar
+        </p>
 
-          {error && <p className="text-sm text-red-500">{error}</p>}
+        {/* Decorative SVG */}
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 200 200"
+          className="absolute bottom-0 right-0 w-48 h-48 opacity-10"
+          aria-hidden="true"
+        >
+          <circle cx="160" cy="160" r="100" fill="white" />
+          <circle cx="80" cy="140" r="70" fill="white" />
+          <circle cx="140" cy="80" r="60" fill="white" />
+        </svg>
+      </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-primary-600 hover:bg-primary-700 text-white rounded-lg py-2 text-sm font-semibold transition disabled:opacity-50"
-          >
-            {loading ? 'Signing in…' : 'Sign in'}
-          </button>
-        </form>
+      {/* Right form panel */}
+      <div className="flex-1 flex items-center justify-center bg-[var(--page-bg)] p-8">
+        <div className="w-full max-w-sm">
+          <h1 className="font-display font-semibold text-2xl text-[var(--text-1)] mb-1">
+            Sign in
+          </h1>
+          <p className="font-sans text-sm text-[var(--text-2)] mb-8">
+            MFI Management Portal
+          </p>
+
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div>
+              <label className="block font-sans text-sm font-medium text-[var(--text-1)] mb-1">
+                Username
+              </label>
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+                autoFocus
+                className="w-full border border-[var(--border)] rounded-lg px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[var(--gold)] focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label className="block font-sans text-sm font-medium text-[var(--text-1)] mb-1">
+                Password
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full border border-[var(--border)] rounded-lg px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[var(--gold)] focus:border-transparent"
+              />
+            </div>
+
+            {error && (
+              <p className="text-sm text-[var(--danger)] mt-1">{error}</p>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-[var(--gold)] hover:bg-[#b8890f] text-[#1b2030] font-semibold text-sm rounded-lg py-2.5 transition disabled:opacity-50 font-display"
+            >
+              {loading ? 'Signing in…' : 'Sign in'}
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   );
