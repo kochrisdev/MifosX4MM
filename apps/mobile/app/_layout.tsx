@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Stack, useRouter, useSegments } from 'expo-router';
+import { Stack, useRouter, useSegments, useRootNavigationState } from 'expo-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from '../src/context/AuthContext';
 
@@ -11,13 +11,15 @@ function NavigationGuard() {
   const { user, isLoading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
+  const rootNavState = useRootNavigationState();
 
   useEffect(() => {
+    if (!rootNavState?.key) return; // wait for navigator to be ready
     if (isLoading) return;
     const inAuth = segments[0] === '(auth)';
     if (!user && !inAuth) router.replace('/(auth)/login');
     if (user && inAuth) router.replace('/(tabs)');
-  }, [user, isLoading, segments]);
+  }, [user, isLoading, segments, rootNavState?.key]);
 
   return null;
 }
