@@ -1,0 +1,85 @@
+volumes:
+  postgres_data:
+  keycloak_data:
+  mysql_data:
+
+networks:
+  mifos_net:
+    driver: bridge
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: mifos
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: fineract_default
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "5432:5432"
+    networks: [mifos_net]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mifos -d keycloak"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mysql:
+    image: mysql:8.0
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: fineract_tenants
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./infra/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "3306:3306"
+    networks: [mifos_net]
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-ppassword"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  fineract:
+    image: apache/fineract:latest
+    environment:
+      FINERACT_DEFAULT_TENANTDB_HOSTNAME: mysql
+      FINERACT_DEFAULT_TENANTDB_PORT: 3306
+      FINERACT_DEFAULT_TENANTDB_UID: root
+      FINERACT_DEFAULT_TENANTDB_PWD: password
+      FINERACT_DEFAULT_TENANTDB_CONN_PARAMS: ""
+      FINERACT_HIKARI_JDBC_URL: jdbc:mariadb://mysql:3306/fineract_tenants
+      FINERACT_HIKARI_USERNAME: root
+      FINERACT_HIKARI_PASSWORD: password
+      FINERACT_TENANTS_MASTER_JDBC_URL: jdbc:mariadb://mysql:3306/fineract_tenants
+      FINERACT_SERVER_SSL_ENABLED: "false"
+      FINERACT_SERVER_PORT: 8080
+    ports:
+      - "8080:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks: [mifos_net]
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0
+    command: start-dev --import-realm
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: mifos
+      KC_DB_PASSWORD: password
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    volumes:
+      - ./infra/keycloak/realm-mifos.json:/opt/keycloak/data/import/realm-mifos.json:ro
+    ports:
+      - "8180:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [mifos_net]

@@ -7,7 +7,9 @@ import { Search, UserPlus, ChevronRight } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import clsx from 'clsx';
 
-function clientStatusVariant(statusId: number) {
+type StatusVariant = 'green' | 'red' | 'gray';
+
+function clientStatusVariant(statusId: number): StatusVariant {
   if (statusId === 300) return 'green';
   if (statusId === 100) return 'gray';
   if ([400, 600].includes(statusId)) return 'red';
@@ -47,18 +49,18 @@ export default function ClientsPage() {
       {/* Actions bar */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1 max-w-sm">
-          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-3)]" />
           <input
             type="text"
             placeholder="Search clients…"
             value={search}
             onChange={(e) => onSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
+            className="w-full pl-9 pr-4 py-2 text-sm border border-[var(--border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--gold)] bg-white font-sans"
           />
         </div>
         <Link
           href="/clients/new"
-          className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition whitespace-nowrap"
+          className="flex items-center gap-2 px-4 py-2 text-sm rounded-lg transition whitespace-nowrap font-display bg-[var(--gold)] hover:bg-[#b8890f] text-[#1b2030] font-semibold"
         >
           <UserPlus size={15} />
           New Client
@@ -66,15 +68,15 @@ export default function ClientsPage() {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
-          <p className="text-sm text-gray-500">
+      <div className="bg-white rounded-xl border border-[var(--border)] overflow-hidden">
+        <div className="px-5 py-3 border-b border-[var(--border)] flex items-center justify-between">
+          <p className="text-sm text-[var(--text-2)] font-sans">
             {isLoading ? 'Loading…' : `${total.toLocaleString()} client${total !== 1 ? 's' : ''}`}
           </p>
         </div>
 
         {isLoading ? (
-          <div className="divide-y divide-gray-50">
+          <div className="divide-y divide-[var(--border)]">
             {Array.from({ length: 8 }).map((_, i) => (
               <div key={i} className="flex items-center gap-4 px-5 py-4 animate-pulse">
                 <div className="w-9 h-9 rounded-full bg-gray-100" />
@@ -86,16 +88,16 @@ export default function ClientsPage() {
             ))}
           </div>
         ) : clients.length === 0 ? (
-          <div className="py-16 text-center text-gray-400 text-sm">
+          <div className="py-16 text-center text-[var(--text-3)] text-sm font-sans">
             {debouncedSearch ? `No clients matching "${debouncedSearch}"` : 'No clients yet'}
           </div>
         ) : (
-          <div className="divide-y divide-gray-50">
+          <div className="divide-y divide-[var(--border)]">
             {clients.map((c) => (
               <Link
                 key={c.id}
                 href={`/clients/${c.id}`}
-                className="flex items-center gap-4 px-5 py-4 hover:bg-gray-50 transition-colors group"
+                className="flex items-center gap-4 px-5 py-4 hover:bg-[var(--page-bg)] transition-colors group"
               >
                 {/* Avatar */}
                 <div className={clsx('w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-semibold flex-shrink-0', avatarColor(c.id))}>
@@ -104,24 +106,24 @@ export default function ClientsPage() {
 
                 {/* Info */}
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">{c.displayName}</p>
-                  <p className="text-xs text-gray-400">
+                  <p className="text-sm font-medium text-[var(--text-1)] font-sans truncate">{c.displayName}</p>
+                  <p className="font-mono text-xs text-[var(--text-2)]">
                     {c.accountNo} · {c.officeName}
                   </p>
                 </div>
 
                 {/* Mobile */}
                 {c.mobileNo && (
-                  <p className="hidden sm:block text-sm text-gray-500">{c.mobileNo}</p>
+                  <p className="hidden sm:block text-sm text-[var(--text-2)] font-sans">{c.mobileNo}</p>
                 )}
 
                 {/* Status */}
                 <Badge
                   label={c.status.value}
-                  variant={clientStatusVariant(c.status.id) as any}
+                  variant={clientStatusVariant(c.status.id)}
                 />
 
-                <ChevronRight size={15} className="text-gray-300 group-hover:text-gray-400 transition flex-shrink-0" />
+                <ChevronRight size={15} className="text-[var(--text-3)] group-hover:text-[var(--gold)] transition flex-shrink-0" />
               </Link>
             ))}
           </div>
@@ -129,11 +131,11 @@ export default function ClientsPage() {
 
         {/* Load more */}
         {hasNextPage && (
-          <div className="px-5 py-3 border-t border-gray-100">
+          <div className="px-5 py-3 border-t border-[var(--border)]">
             <button
               onClick={() => fetchNextPage()}
               disabled={isFetchingNextPage}
-              className="w-full text-sm text-primary-600 hover:text-primary-700 font-medium py-1 disabled:opacity-50"
+              className="w-full text-sm text-[var(--gold)] hover:text-[#b8890f] font-medium py-1 disabled:opacity-50 font-display transition"
             >
               {isFetchingNextPage ? 'Loading…' : 'Load more'}
             </button>

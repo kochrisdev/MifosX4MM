@@ -10,6 +10,8 @@
     "test": "turbo run test",
     "docker:up": "docker compose up -d --build",
     "docker:down": "docker compose down",
+    "docker:infra": "docker compose -f docker-compose.infra.yml up -d",
+    "docker:infra:down": "docker compose -f docker-compose.infra.yml down",
     "seed": "tsx scripts/seed-fineract.ts"
   },
   "devDependencies": {

@@ -1,14 +1,16 @@
 import clsx from 'clsx';
 
-type Variant = 'green' | 'red' | 'amber' | 'blue' | 'gray';
+export type Variant = 'green' | 'red' | 'amber' | 'blue' | 'gray';
 
-const VARIANTS: Record<Variant, string> = {
-  green: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
-  red:   'bg-red-50   text-red-700   ring-red-200',
-  amber: 'bg-amber-50 text-amber-700 ring-amber-200',
-  blue:  'bg-blue-50  text-blue-700  ring-blue-200',
-  gray:  'bg-gray-100 text-gray-600  ring-gray-200',
+const DOT_COLORS: Record<Variant, string> = {
+  green: 'bg-[var(--success)]',
+  red:   'bg-[var(--danger)]',
+  amber: 'bg-[var(--warning)]',
+  blue:  'bg-blue-500',
+  gray:  'bg-[var(--text-2)]',
 };
+
+const LABEL_COLOR = 'text-[var(--text-1)]';
 
 interface BadgeProps {
   label: string;
@@ -20,12 +22,19 @@ export function Badge({ label, variant = 'gray', className }: BadgeProps) {
   return (
     <span
       className={clsx(
-        'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset',
-        VARIANTS[variant],
+        'inline-flex items-center gap-1.5',
         className
       )}
     >
-      {label}
+      <span
+        className={clsx(
+          'w-1.5 h-1.5 rounded-full flex-shrink-0',
+          DOT_COLORS[variant]
+        )}
+      />
+      <span className={clsx('text-xs font-medium font-sans', LABEL_COLOR)}>
+        {label}
+      </span>
     </span>
   );
 }

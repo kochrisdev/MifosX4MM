@@ -3,9 +3,10 @@
 import { useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useLoans } from '@/hooks/useLoans';
-import { Badge, loanStatusBadge } from '@/components/ui/Badge';
+import { loanStatusBadge } from '@/components/ui/Badge';
 import { formatMMK } from '@/lib/format';
-import { Search, ChevronRight, AlertCircle } from 'lucide-react';
+import { Search, ChevronRight } from 'lucide-react';
+import clsx from 'clsx';
 
 export default function LoansPage() {
   const [search, setSearch] = useState('');
@@ -25,28 +26,30 @@ export default function LoansPage() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-5">
+      {/* Actions bar */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1 max-w-sm">
-          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-3)]" />
           <input
             type="text"
             placeholder="Search by account number…"
             value={search}
             onChange={(e) => onSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
+            className="w-full pl-9 pr-4 py-2 text-sm border border-[var(--border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--gold)] bg-white font-sans"
           />
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="px-5 py-3 border-b border-gray-100">
-          <p className="text-sm text-gray-500">
+      {/* Table */}
+      <div className="bg-white rounded-xl border border-[var(--border)] overflow-hidden">
+        <div className="px-5 py-3 border-b border-[var(--border)]">
+          <p className="text-sm text-[var(--text-2)] font-sans">
             {isLoading ? 'Loading…' : `${total.toLocaleString()} loan${total !== 1 ? 's' : ''}`}
           </p>
         </div>
 
         {isLoading ? (
-          <div className="divide-y divide-gray-50">
+          <div className="divide-y divide-[var(--border)]">
             {Array.from({ length: 8 }).map((_, i) => (
               <div key={i} className="flex items-center gap-4 px-5 py-4 animate-pulse">
                 <div className="flex-1 space-y-2">
@@ -58,48 +61,47 @@ export default function LoansPage() {
             ))}
           </div>
         ) : loans.length === 0 ? (
-          <div className="py-16 text-center text-gray-400 text-sm">
+          <div className="py-16 text-center text-[var(--text-3)] text-sm font-sans">
             {debouncedSearch ? `No loans matching "${debouncedSearch}"` : 'No loans found'}
           </div>
         ) : (
-          <div className="divide-y divide-gray-50">
+          <div className="divide-y divide-[var(--border)]">
             {loans.map((loan) => (
               <Link
                 key={loan.id}
                 href={`/loans/${loan.id}`}
-                className="flex items-center gap-4 px-5 py-4 hover:bg-gray-50 transition-colors group"
+                className={clsx(
+                  'flex items-center gap-4 px-5 py-4 hover:bg-[var(--page-bg)] transition-colors group',
+                  loan.inArrears && 'border-l-2 border-[var(--danger)]'
+                )}
               >
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-medium text-gray-900 truncate">{loan.clientName}</p>
-                    {loan.inArrears && (
-                      <AlertCircle size={13} className="text-red-500 flex-shrink-0" />
-                    )}
-                  </div>
-                  <p className="text-xs text-gray-400">{loan.accountNo} · {loan.productName}</p>
+                  <p className="text-sm font-medium text-[var(--text-1)] font-sans truncate">{loan.clientName}</p>
+                  <p className="font-mono text-xs text-[var(--text-2)]">{loan.accountNo} · {loan.productName}</p>
                 </div>
 
                 <div className="hidden sm:block text-right">
-                  <p className="text-sm font-semibold text-gray-900">
+                  <p className="font-mono text-sm font-semibold text-[var(--text-1)]">
                     {loan.currency.displaySymbol} {formatMMK(loan.totalOutstanding)}
                   </p>
-                  <p className="text-xs text-gray-400">outstanding</p>
+                  <p className="text-xs text-[var(--text-2)] font-sans">outstanding</p>
                 </div>
 
                 {loanStatusBadge(loan.status.id)}
 
-                <ChevronRight size={15} className="text-gray-300 group-hover:text-gray-400 transition flex-shrink-0" />
+                <ChevronRight size={15} className="text-[var(--text-3)] group-hover:text-[var(--gold)] transition flex-shrink-0" />
               </Link>
             ))}
           </div>
         )}
 
+        {/* Load more */}
         {hasNextPage && (
-          <div className="px-5 py-3 border-t border-gray-100">
+          <div className="px-5 py-3 border-t border-[var(--border)]">
             <button
               onClick={() => fetchNextPage()}
               disabled={isFetchingNextPage}
-              className="w-full text-sm text-primary-600 hover:text-primary-700 font-medium py-1 disabled:opacity-50"
+              className="w-full text-sm text-[var(--gold)] hover:text-[#b8890f] font-medium py-1 disabled:opacity-50 font-display transition"
             >
               {isFetchingNextPage ? 'Loading…' : 'Load more'}
             </button>

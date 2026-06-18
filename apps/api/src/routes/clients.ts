@@ -3,19 +3,19 @@ import type { AxiosInstance } from 'axios';
 import type { FineractClient, PaginatedResponse } from '@mifos-x/shared-types';
 
 export async function clientRoutes(app: FastifyInstance, fineract: AxiosInstance) {
-  app.get<{ Querystring: { page?: number; pageSize?: number; search?: string } }>(
+  app.get<{ Querystring: { offset?: number; limit?: number; displayName?: string } }>(
     '/clients',
     async (req, reply) => {
-      const { page = 0, pageSize = 20, search } = req.query;
-      const params: Record<string, unknown> = { offset: page * pageSize, limit: pageSize };
-      if (search) params['displayName'] = search;
+      const { offset = 0, limit = 25, displayName } = req.query;
+      const params: Record<string, unknown> = { offset, limit };
+      if (displayName) params['displayName'] = displayName;
 
       const { data } = await fineract.get('/clients', { params });
       const result: PaginatedResponse<FineractClient> = {
         items: data.pageItems,
         total: data.totalFilteredRecords,
-        page,
-        pageSize,
+        page: Number(offset),
+        pageSize: Number(limit),
       };
       return reply.send({ success: true, data: result });
     }
